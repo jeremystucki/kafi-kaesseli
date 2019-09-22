@@ -1,7 +1,8 @@
 extern crate nom;
 
 use self::nom::bytes::complete::{tag, take_while1, take_while_m_n};
-use self::nom::combinator::value;
+use self::nom::combinator::{not, peek, value};
+use self::nom::sequence::terminated;
 use crate::Rappen;
 use nom::branch::alt;
 use nom::character::complete::{char as nom_char, digit1};
@@ -15,66 +16,66 @@ pub(crate) struct CurrencyParser;
 
 impl CurrencyParser {
     pub(crate) fn parse_text(&self, text: String) -> Option<Rappen> {
-        let sign = map(opt(nom_char('-')), |option| option.is_none());
-
-        let franken_amount = alt::<_, _, (), _>((
-            map(nom_char('-'), |_| 0),
-            map(digit1, |string: &str| string.parse::<u16>().unwrap()),
-        ));
-
         let separator = alt((nom_char('.'), nom_char(',')));
 
-        let rappen_amount = map(
-            opt(preceded(
-                separator,
-                alt((
-                    map(nom_char('-'), |_| 0),
-                    // TODO: is_char_digit is weird
-                    map(take_while_m_n(1, 2, is_char_digit), |digits: &str| {
-                        // TODO: Does not need to be u16
-                        let parsed = digits.parse::<u16>().unwrap();
-
-                        if digits.len() == 1 {
-                            parsed * 10
-                        } else {
-                            parsed
-                        }
-                    }),
-                )),
-            )),
-            |option| option.unwrap_or(0),
+        let sign = map(
+            opt(terminated(nom_char('-'), not(peek(&separator)))),
+            |option| option.is_none(),
         );
 
-        let parser = tuple((
-            map(opt(tuple((sign, franken_amount))), |option| {
-                option.unwrap_or((true, 0))
+        let franken_amount = map(digit1, |digits: &str| digits.parse::<u16>().unwrap());
+        let rappen_amount = alt((
+            map(take_while_m_n(2, 2, is_char_digit), |digits: &str| {
+                digits.parse::<u16>().unwrap()
             }),
-            rappen_amount,
+            map(take_while_m_n(1, 1, is_char_digit), |digits: &str| {
+                digits.parse::<u16>().unwrap() * 10
+            }),
         ));
 
-        let result = parser(&text);
+        let dash = nom_char('-');
 
-        dbg!(&result);
+        let parser = tuple::<_, _, (), _>((
+            sign,
+            alt((
+                map(
+                    tuple((&franken_amount, &separator, &rappen_amount)),
+                    |(franken_amount, _, rappen_amount)| (franken_amount, rappen_amount),
+                ),
+                map(
+                    tuple((&franken_amount, &separator, &dash)),
+                    |(franken_amount, _, _)| (franken_amount, 0),
+                ),
+                map(
+                    tuple((&dash, &separator, &rappen_amount)),
+                    |(_, _, rappen_amount)| (0, rappen_amount),
+                ),
+                map(&franken_amount, |franken_amount| (franken_amount, 0)),
+            )),
+        ));
 
-        if let Ok((remaining_text, ((is_positive, franken_amount), rappen_amount))) = result {
-            if !remaining_text.is_empty() {
-                return None;
-            }
+        parser(&text)
+            .ok()
+            .and_then(|(remaining_text, parsed_data)| {
+                if remaining_text.is_empty() {
+                    Some(parsed_data)
+                } else {
+                    None
+                }
+            })
+            .map(|(is_positive, (franken_amount, rappen_amount))| {
+                let value: Rappen = (franken_amount * 100 + rappen_amount).into();
 
-            let total_amount: Rappen = (rappen_amount + franken_amount * 100).into();
-
-            if is_positive {
-                Some(total_amount)
-            } else {
-                Some(-total_amount)
-            }
-        } else {
-            None
-        }
+                if is_positive {
+                    value
+                } else {
+                    -value
+                }
+            })
     }
 }
 
-pub fn is_char_digit(chr: char) -> bool {
+fn is_char_digit(chr: char) -> bool {
     return chr.is_ascii() && is_digit(chr as u8);
 }
 
@@ -102,11 +103,6 @@ mod tests {
     #[test]
     fn franken_with_zero_rappen() {
         test_parser("2.0", Some(200))
-    }
-
-    #[test]
-    fn rappen_only() {
-        test_parser(".5", Some(50))
     }
 
     #[test]
