@@ -76,7 +76,7 @@ impl CurrencyParser {
 }
 
 fn is_char_digit(chr: char) -> bool {
-    return chr.is_ascii() && is_digit(chr as u8);
+    chr.is_ascii() && is_digit(chr as u8)
 }
 
 #[cfg(test)]
