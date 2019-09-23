@@ -1,6 +1,7 @@
 use crate::Rappen;
 use std::ops::Add;
 
+// TODO: Convert to Trait
 pub(crate) struct CurrencyFormatter {}
 
 impl CurrencyFormatter {
