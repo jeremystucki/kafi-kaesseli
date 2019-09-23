@@ -12,6 +12,7 @@ use nom::multi::{many0, many1};
 use nom::number::complete::be_u16;
 use nom::sequence::{pair, preceded, tuple};
 
+// TODO: Convert to Trait
 pub(crate) struct CurrencyParser;
 
 impl CurrencyParser {
