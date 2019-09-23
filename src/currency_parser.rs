@@ -1,22 +1,28 @@
 extern crate nom;
 
-use self::nom::bytes::complete::{tag, take_while1, take_while_m_n};
-use self::nom::combinator::{not, peek, value};
+use self::nom::bytes::complete::take_while_m_n;
+use self::nom::combinator::{not, peek};
 use self::nom::sequence::terminated;
 use crate::Rappen;
 use nom::branch::alt;
 use nom::character::complete::{char as nom_char, digit1};
 use nom::character::is_digit;
 use nom::combinator::{map, opt};
-use nom::multi::{many0, many1};
-use nom::number::complete::be_u16;
-use nom::sequence::{pair, preceded, tuple};
+use nom::multi::many0;
+use nom::sequence::tuple;
 
-// TODO: Convert to Trait
-pub(crate) struct CurrencyParser;
+#[cfg(test)]
+use mockiato::mockable;
 
-impl CurrencyParser {
-    pub(crate) fn parse_text(&self, text: String) -> Option<Rappen> {
+#[cfg_attr(test, mockable)]
+pub trait CurrencyParser {
+    fn parse_text(&self, text: String) -> Result<Rappen, ()>;
+}
+
+pub struct CurrencyParserImpl;
+
+impl CurrencyParser for CurrencyParserImpl {
+    fn parse_text(&self, text: String) -> Result<Rappen, ()> {
         let separator = alt((nom_char('.'), nom_char(',')));
 
         let sign = map(
@@ -58,24 +64,20 @@ impl CurrencyParser {
             )),
         ));
 
-        parser(&text)
-            .ok()
-            .and_then(|(remaining_text, parsed_data)| {
-                if remaining_text.is_empty() {
-                    Some(parsed_data)
-                } else {
-                    None
-                }
-            })
-            .map(|(is_positive, (franken_amount, rappen_amount))| {
-                let value: Rappen = (franken_amount * 100 + rappen_amount).into();
+        let (remaining_text, parsed_data) = parser(&text).map_err(|_| ())?;
 
-                if is_positive {
-                    value
-                } else {
-                    -value
-                }
-            })
+        if !remaining_text.is_empty() {
+            return Err(());
+        }
+
+        let (is_positive, (franken_amount, rappen_amount)) = parsed_data;
+
+        let value: Rappen = (franken_amount * 100 + rappen_amount).into();
+        if is_positive {
+            Ok(value)
+        } else {
+            Ok(-value)
+        }
     }
 }
 
@@ -87,8 +89,8 @@ fn is_char_digit(chr: char) -> bool {
 mod tests {
     use super::*;
 
-    fn test_parser(input: &str, expected: Option<Rappen>) {
-        let parser = CurrencyParser {};
+    fn test_parser(input: &str, expected: Result<Rappen, ()>) {
+        let parser = CurrencyParserImpl {};
         let actual = parser.parse_text(input.to_string());
 
         assert_eq!(expected, actual);
@@ -96,41 +98,41 @@ mod tests {
 
     #[test]
     fn franken_only() {
-        test_parser("2", Some(200))
+        test_parser("2", Ok(200))
     }
 
     #[test]
     fn dash_for_rappen() {
-        test_parser("2.-", Some(200))
+        test_parser("2.-", Ok(200))
     }
 
     #[test]
     fn franken_with_zero_rappen() {
-        test_parser("2.0", Some(200))
+        test_parser("2.0", Ok(200))
     }
 
     #[test]
     fn dash_for_franken() {
-        test_parser("-.05", Some(5))
+        test_parser("-.05", Ok(5))
     }
 
     #[test]
     fn with_comma() {
-        test_parser("1,20", Some(120))
+        test_parser("1,20", Ok(120))
     }
 
     #[test]
     fn negative() {
-        test_parser("-2.5", Some(-250))
+        test_parser("-2.5", Ok(-250))
     }
 
     #[test]
     fn invalid_rappen_amount() {
-        test_parser("2.005", None)
+        test_parser("2.005", Err(()))
     }
 
     #[test]
     fn space_after_minus_sign() {
-        test_parser("- 1.-", Some(-100))
+        test_parser("- 1.-", Ok(-100))
     }
 }
