@@ -19,7 +19,10 @@ impl CurrencyParser {
         let separator = alt((nom_char('.'), nom_char(',')));
 
         let sign = map(
-            opt(terminated(nom_char('-'), not(peek(&separator)))),
+            opt(terminated(
+                nom_char('-'),
+                tuple((not(peek(&separator)), many0(nom_char(' ')))),
+            )),
             |option| option.is_none(),
         );
 
@@ -123,5 +126,10 @@ mod tests {
     #[test]
     fn invalid_rappen_amount() {
         test_parser("2.005", None)
+    }
+
+    #[test]
+    fn space_after_minus_sign() {
+        test_parser("- 1.-", Some(-100))
     }
 }
