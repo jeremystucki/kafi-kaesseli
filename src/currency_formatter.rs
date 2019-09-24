@@ -1,10 +1,17 @@
 use crate::Rappen;
 
-// TODO: Convert to Trait
-pub(crate) struct CurrencyFormatter {}
+#[cfg(test)]
+use mockiato::mockable;
 
-impl CurrencyFormatter {
-    pub(crate) fn format_amount(&self, amount: Rappen) -> String {
+#[cfg_attr(test, mockable)]
+pub trait CurrencyFormatter {
+    fn format_amount(&self, amount: Rappen) -> String;
+}
+
+pub struct CurrencyFormatterImpl {}
+
+impl CurrencyFormatter for CurrencyFormatterImpl {
+    fn format_amount(&self, amount: Rappen) -> String {
         let prefix = if amount >= 0 { "" } else { "- " };
         let formatted_franken = format_whole_franken_amount(amount);
         let formatted_rappen = format_rappen_amount(amount);
@@ -42,7 +49,7 @@ mod tests {
     fn formats_zero_correctly() {
         let expected = String::from("0.-");
 
-        let formatter = CurrencyFormatter {};
+        let formatter = CurrencyFormatterImpl {};
         let actual = formatter.format_amount(0);
 
         assert_eq!(expected, actual);
@@ -52,7 +59,7 @@ mod tests {
     fn formats_negative_one_hundred_correctly() {
         let expected = String::from("- 1.-");
 
-        let formatter = CurrencyFormatter {};
+        let formatter = CurrencyFormatterImpl {};
         let actual = formatter.format_amount(-100);
 
         assert_eq!(expected, actual);
@@ -62,7 +69,7 @@ mod tests {
     fn formats_negative_one_hundred_and_one_correctly() {
         let expected = String::from("- 1.01");
 
-        let formatter = CurrencyFormatter {};
+        let formatter = CurrencyFormatterImpl {};
         let actual = formatter.format_amount(-101);
 
         assert_eq!(expected, actual);
@@ -72,7 +79,7 @@ mod tests {
     fn formats_negative_ninety_nine_correctly() {
         let expected = String::from("- -.99");
 
-        let formatter = CurrencyFormatter {};
+        let formatter = CurrencyFormatterImpl {};
         let actual = formatter.format_amount(-99);
 
         assert_eq!(expected, actual);
@@ -82,7 +89,7 @@ mod tests {
     fn formats_one_hundred_correctly() {
         let expected = String::from("1.-");
 
-        let formatter = CurrencyFormatter {};
+        let formatter = CurrencyFormatterImpl {};
         let actual = formatter.format_amount(100);
 
         assert_eq!(expected, actual);
@@ -92,7 +99,7 @@ mod tests {
     fn formats_one_hundred_and_one_correctly() {
         let expected = String::from("1.01");
 
-        let formatter = CurrencyFormatter {};
+        let formatter = CurrencyFormatterImpl {};
         let actual = formatter.format_amount(101);
 
         assert_eq!(expected, actual);
@@ -102,7 +109,7 @@ mod tests {
     fn formats_ninety_nine_correctly() {
         let expected = String::from("-.99");
 
-        let formatter = CurrencyFormatter {};
+        let formatter = CurrencyFormatterImpl {};
         let actual = formatter.format_amount(99);
 
         assert_eq!(expected, actual);
