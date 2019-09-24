@@ -6,11 +6,6 @@ mod message_handler;
 
 type Rappen = i32;
 
-enum MessageValidity {
-    Valid(MessageType),
-    Invalid,
-}
-
 enum MessageType {
     Command(String),
     Amount(Rappen),
@@ -23,10 +18,11 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use currency_formatter::CurrencyFormatter;
     use currency_parser::CurrencyParser;
 
     fn format_and_parse(amount: Rappen) {
-        let formatted_amount = currency_formatter::CurrencyFormatter {}.format_amount(amount);
+        let formatted_amount = currency_formatter::CurrencyFormatterImpl {}.format_amount(amount);
 
         let parser = currency_parser::CurrencyParserImpl {};
         let parsed_amount = parser.parse_text(formatted_amount).unwrap();
