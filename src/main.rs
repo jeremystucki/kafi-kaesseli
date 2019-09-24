@@ -2,13 +2,35 @@
 
 mod currency_formatter;
 mod currency_parser;
-mod message_handler;
+mod message_router;
+
+struct Person {
+    id: usize,
+    name: String,
+}
+
+struct Message {
+    sender: Person,
+    contents: String,
+}
 
 type Rappen = i32;
 
-enum MessageType {
-    Command(String),
+enum Command {
+    GetCurrentStats,
+    ListAvailableItems,
+}
+
+struct Product {
+    identifier: String,
+    name: String,
+    price: Rappen,
+}
+
+enum MessageAction<'a> {
     Amount(Rappen),
+    Command(Command),
+    Product(&'a Product),
 }
 
 fn main() {
