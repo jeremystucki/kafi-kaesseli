@@ -5,14 +5,14 @@ on: [push]
 jobs:
   build:
     name: 'Build'
-    runs-on: ubuntu-bionic
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
       - name: Build
         run: cargo build --all-features
   test:
     name: 'Test'
-    runs-on: ubuntu-bionic
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
       - name: Run tests
@@ -20,7 +20,7 @@ jobs:
 
   lints:
     name: 'Style Checks'
-    runs-on: ubuntu-bionic
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
       - name: Install components
