@@ -10,9 +10,37 @@ pub struct MessageRouterImpl<'a> {
     currency_parser: Box<dyn CurrencyParser>,
 }
 
+impl MessageRouterImpl<'_> {
+    fn get_command(&self, message: &Message) -> Option<Command> {
+        match message.contents.as_ref() {
+            "/list" => Some(Command::ListAvailableItems),
+            "/stats" => Some(Command::GetCurrentStats),
+            _ => None,
+        }
+    }
+
+    fn get_product(&self, message: &Message) -> Option<&Product> {
+        let product_identifier = message.contents.trim_start_matches("/");
+
+        self.available_products
+            .iter()
+            .cloned()
+            .find(|&product| product.identifier == product_identifier.as_ref())
+    }
+}
+
 impl MessageRouter for MessageRouterImpl<'_> {
     fn route_message(&self, message: &Message) -> Result<MessageAction<'_>, ()> {
-        unimplemented!()
+        None.or_else(|| self.get_command(message).map(MessageAction::Command))
+            .or_else(|| self.get_product(message).map(MessageAction::Product))
+            .map_or_else(
+                || {
+                    self.currency_parser
+                        .parse_text(&message.contents)
+                        .map(MessageAction::Amount)
+                },
+                Result::Ok,
+            )
     }
 }
 
@@ -29,7 +57,8 @@ mod tests {
         let mut currency_parser = CurrencyParserMock::new();
         currency_parser
             .expect_parse_text(|arg| arg.partial_eq("Foo"))
-            .times(1);
+            .times(1)
+            .returns(Err(()));
 
         let message = Message {
             sender: Person {
@@ -44,7 +73,8 @@ mod tests {
             currency_parser: Box::new(currency_parser),
         };
 
-        router.route_message(&message).err().unwrap();
+        let action = router.route_message(&message);
+        assert_eq!(Err(()), action);
     }
 
     #[test]
@@ -67,7 +97,7 @@ mod tests {
         };
 
         let action = router.route_message(&message).unwrap();
-        assert_eq!(MessageAction::Command(Command::GetCurrentStats));
+        assert_eq!(MessageAction::Command(Command::GetCurrentStats), action);
     }
 
     #[test]
@@ -90,7 +120,7 @@ mod tests {
         };
 
         let action = router.route_message(&message).unwrap();
-        assert_eq!(MessageAction::Command(Command::ListAvailableItems));
+        assert_eq!(MessageAction::Command(Command::ListAvailableItems), action);
     }
 
     #[test]
@@ -125,7 +155,7 @@ mod tests {
         };
 
         let action = router.route_message(&message).unwrap();
-        assert_eq!(MessageAction::Product(&foo));
+        assert_eq!(MessageAction::Product(&foo), action);
     }
 
     #[test]
@@ -154,6 +184,6 @@ mod tests {
         };
 
         let action = router.route_message(&message).unwrap();
-        assert_eq!(MessageAction::Product(&foo));
+        assert_eq!(MessageAction::Product(&foo), action);
     }
 }

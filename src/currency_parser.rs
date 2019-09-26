@@ -16,13 +16,13 @@ use mockiato::mockable;
 
 #[cfg_attr(test, mockable)]
 pub trait CurrencyParser {
-    fn parse_text(&self, text: String) -> Result<Rappen, ()>;
+    fn parse_text(&self, text: &str) -> Result<Rappen, ()>;
 }
 
 pub struct CurrencyParserImpl;
 
 impl CurrencyParser for CurrencyParserImpl {
-    fn parse_text(&self, text: String) -> Result<Rappen, ()> {
+    fn parse_text(&self, text: &str) -> Result<Rappen, ()> {
         let separator = alt((nom_char('.'), nom_char(',')));
 
         let sign = map(
@@ -91,7 +91,7 @@ mod tests {
 
     fn test_parser(input: &str, expected: Result<Rappen, ()>) {
         let parser = CurrencyParserImpl {};
-        let actual = parser.parse_text(input.to_string());
+        let actual = parser.parse_text(input);
 
         assert_eq!(expected, actual);
     }

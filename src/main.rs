@@ -2,11 +2,13 @@ mod currency_formatter;
 mod currency_parser;
 mod message_router;
 
+#[derive(Debug, PartialEq)]
 struct Person {
     id: usize,
     name: String,
 }
 
+#[derive(Debug, PartialEq)]
 struct Message {
     sender: Person,
     contents: String,
@@ -14,17 +16,20 @@ struct Message {
 
 type Rappen = i32;
 
+#[derive(Debug, PartialEq)]
 enum Command {
     GetCurrentStats,
     ListAvailableItems,
 }
 
+#[derive(Debug, PartialEq)]
 struct Product {
     identifier: String,
     name: String,
     price: Rappen,
 }
 
+#[derive(Debug, PartialEq)]
 enum MessageAction<'a> {
     Amount(Rappen),
     Command(Command),
@@ -45,7 +50,7 @@ mod tests {
         let formatted_amount = currency_formatter::CurrencyFormatterImpl {}.format_amount(amount);
 
         let parser = currency_parser::CurrencyParserImpl {};
-        let parsed_amount = parser.parse_text(formatted_amount).unwrap();
+        let parsed_amount = parser.parse_text(&formatted_amount).unwrap();
 
         assert_eq!(amount, parsed_amount);
     }
