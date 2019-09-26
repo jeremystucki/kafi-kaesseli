@@ -1,5 +1,3 @@
-#![feature(exclusive_range_pattern)]
-
 mod currency_formatter;
 mod currency_parser;
 mod message_router;
