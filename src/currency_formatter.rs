@@ -34,10 +34,10 @@ fn format_whole_franken_amount(amount: Rappen) -> String {
 fn format_rappen_amount(amount: Rappen) -> String {
     let rappen_amount = amount.abs() % 100;
 
-    match rappen_amount {
-        0 => String::from("-"),
-        1..9 => format!("0{}", rappen_amount),
-        _ => rappen_amount.to_string(),
+    if rappen_amount == 0 {
+        String::from("-")
+    } else {
+        format!("{:02}", rappen_amount)
     }
 }
 
