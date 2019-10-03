@@ -125,19 +125,19 @@ mod tests {
 
     #[test]
     fn route_known_product() {
-        let foo = Product {
+        let product_1 = Product {
             identifier: "foo".to_string(),
             name: "test product".to_string(),
             price: 60,
         };
 
-        let bar = Product {
+        let product_2 = Product {
             identifier: "bar".to_string(),
             name: "test product".to_string(),
             price: 120,
         };
 
-        let available_products = vec![&foo, &bar];
+        let available_products = vec![&product_1, &product_2];
 
         let currency_parser = CurrencyParserMock::new();
 
@@ -155,18 +155,18 @@ mod tests {
         };
 
         let action = router.route_message(&message).unwrap();
-        assert_eq!(MessageAction::Product(&foo), action);
+        assert_eq!(MessageAction::Product(&product_1), action);
     }
 
     #[test]
     fn route_known_product_without_slash() {
-        let foo = Product {
+        let product = Product {
             identifier: "foo".to_string(),
             name: "test product".to_string(),
             price: 60,
         };
 
-        let available_products = vec![&foo];
+        let available_products = vec![&product];
 
         let currency_parser = CurrencyParserMock::new();
 
@@ -184,6 +184,6 @@ mod tests {
         };
 
         let action = router.route_message(&message).unwrap();
-        assert_eq!(MessageAction::Product(&foo), action);
+        assert_eq!(MessageAction::Product(&product), action);
     }
 }
