@@ -20,7 +20,7 @@ impl MessageRouterImpl<'_> {
     }
 
     fn get_product(&self, message: &Message) -> Option<&Product> {
-        let product_identifier = message.contents.trim_start_matches("/");
+        let product_identifier = message.contents.trim_start_matches('/');
 
         self.available_products
             .iter()
