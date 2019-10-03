@@ -51,7 +51,7 @@ mod tests {
     use crate::Person;
 
     #[test]
-    fn route_unknown_message() {
+    fn unknown_message() {
         let available_products = vec![];
 
         let mut currency_parser = CurrencyParserMock::new();
@@ -78,7 +78,7 @@ mod tests {
     }
 
     #[test]
-    fn route_stats_command() {
+    fn stats_command() {
         let available_products = vec![];
 
         let currency_parser = CurrencyParserMock::new();
@@ -101,7 +101,7 @@ mod tests {
     }
 
     #[test]
-    fn route_list_available_items_command() {
+    fn list_available_items_command() {
         let available_products = vec![];
 
         let currency_parser = CurrencyParserMock::new();
@@ -124,7 +124,7 @@ mod tests {
     }
 
     #[test]
-    fn route_known_product() {
+    fn known_product() {
         let product_1 = Product {
             identifier: "foo".to_string(),
             name: "test product".to_string(),
@@ -159,7 +159,7 @@ mod tests {
     }
 
     #[test]
-    fn route_known_product_without_slash() {
+    fn known_product_without_slash() {
         let product = Product {
             identifier: "foo".to_string(),
             name: "test product".to_string(),
@@ -185,5 +185,32 @@ mod tests {
 
         let action = router.route_message(&message).unwrap();
         assert_eq!(MessageAction::Product(&product), action);
+    }
+
+    #[test]
+    fn amount() {
+        let available_products = vec![];
+
+        let mut currency_parser = CurrencyParserMock::new();
+        currency_parser
+            .expect_parse_text(|arg| arg.partial_eq("1.20"))
+            .times(1)
+            .returns(Ok(120));
+
+        let message = Message {
+            sender: Person {
+                id: 0,
+                name: "Test".to_string(),
+            },
+            contents: "1.20".to_string(),
+        };
+
+        let router = MessageRouterImpl {
+            available_products,
+            currency_parser: Box::new(currency_parser),
+        };
+
+        let action = router.route_message(&message).unwrap();
+        assert_eq!(MessageAction::Amount(120), action);
     }
 }
