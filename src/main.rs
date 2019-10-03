@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 mod currency_formatter;
 mod currency_parser;
 mod message_router;
