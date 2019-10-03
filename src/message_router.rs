@@ -25,7 +25,7 @@ impl MessageRouterImpl<'_> {
         self.available_products
             .iter()
             .cloned()
-            .find(|&product| product.identifier == product_identifier.as_ref())
+            .find(|&product| product.identifier == product_identifier)
     }
 }
 
