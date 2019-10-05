@@ -1,8 +1,13 @@
 #![allow(dead_code)]
 
+#[macro_use]
+extern crate diesel;
+
 mod currency_formatter;
 mod currency_parser;
 mod message_router;
+
+mod schema;
 
 #[derive(Debug, PartialEq)]
 struct Person {
