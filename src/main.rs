@@ -10,6 +10,8 @@ mod message_router;
 mod models;
 mod schema;
 
+mod data_provider;
+
 #[derive(Debug, PartialEq)]
 struct Person {
     id: usize,
