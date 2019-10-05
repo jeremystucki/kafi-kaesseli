@@ -9,6 +9,7 @@ edition = "2018"
 
 [dependencies]
 nom = "5.0"
+diesel = { version = "1.0", features = ["sqlite"] }
 
 [dev-dependencies]
 mockiato = "0.9"
