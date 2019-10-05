@@ -1,6 +1,5 @@
 table! {
-    products (id) {
-        id -> Integer,
+    products (identifier) {
         identifier -> Text,
         name -> Text,
         price -> Integer,
