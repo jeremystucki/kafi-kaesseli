@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Install sqlite
-        run: apt-get install sqlite3
+        run: sudo apt-get install sqlite3
       - name: Build
         run: cargo build --all-features
 
@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Install sqlite
-        run: apt-get install sqlite3
+        run: sudo apt-get install sqlite3
       - name: Run tests
         run: cargo test --all-features
 
