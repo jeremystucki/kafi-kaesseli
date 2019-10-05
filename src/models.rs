@@ -1,11 +1,16 @@
 use crate::schema::products;
 
-#[derive(Queryable)]
+#[derive(Queryable, Clone, Debug)]
 pub struct Product {
-    pub id: i32,
     pub identifier: String,
     pub name: String,
     pub price: i32,
+}
+
+impl PartialEq for Product {
+    fn eq(&self, other: &Self) -> bool {
+        self.identifier == other.identifier
+    }
 }
 
 #[derive(Insertable, Clone)]
