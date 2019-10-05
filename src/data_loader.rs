@@ -92,7 +92,9 @@ mod tests {
         data_loader.load_product_data().unwrap();
         data_loader.load_product_data().unwrap();
 
-        let products = products::dsl::products.load::<Product>(&database_connection).unwrap();
+        let products = products::dsl::products
+            .load::<Product>(&database_connection)
+            .unwrap();
         assert_eq!(1, products.len());
 
         let product = products.get(0).unwrap();
