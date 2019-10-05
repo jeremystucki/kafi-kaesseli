@@ -7,6 +7,7 @@ mod currency_formatter;
 mod currency_parser;
 mod message_router;
 
+mod models;
 mod schema;
 
 #[derive(Debug, PartialEq)]
