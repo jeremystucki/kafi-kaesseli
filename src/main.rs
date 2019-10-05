@@ -10,6 +10,7 @@ mod message_router;
 mod models;
 mod schema;
 
+mod data_loader;
 mod data_provider;
 
 #[derive(Debug, PartialEq)]
