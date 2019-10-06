@@ -25,7 +25,7 @@ jobs:
       - name: Install diesel cli
         run: cargo install diesel_cli --no-default-features --features sqlite
       - name: Run database migrations
-        run: diesel migration run
+        run: diesel migration run --database-url ':memory:'
 
   lints:
     name: 'Style Checks'
