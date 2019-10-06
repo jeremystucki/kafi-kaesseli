@@ -1,4 +1,4 @@
-use crate::models::NewProduct;
+use crate::models::Product;
 
 #[cfg(test)]
 use mockiato::mockable;
@@ -10,8 +10,8 @@ pub trait DataProvider<T> {
 
 pub struct ProductDataProvider;
 
-impl DataProvider<NewProduct> for ProductDataProvider {
-    fn get_data(&self) -> Box<dyn Iterator<Item = Result<NewProduct, ()>>> {
+impl DataProvider<Product> for ProductDataProvider {
+    fn get_data(&self) -> Box<dyn Iterator<Item = Result<Product, ()>>> {
         unimplemented!()
     }
 }

@@ -1,7 +1,7 @@
 use diesel::{RunQueryDsl, SqliteConnection};
 
 use crate::data_provider::DataProvider;
-use crate::models::NewProduct;
+use crate::models::Product;
 use crate::schema::products;
 
 pub trait DataLoader {
@@ -10,13 +10,13 @@ pub trait DataLoader {
 
 pub struct DataLoaderImpl<'a> {
     database_connection: &'a SqliteConnection,
-    product_data_provider: Box<dyn DataProvider<NewProduct>>,
+    product_data_provider: Box<dyn DataProvider<Product>>,
 }
 
 impl<'a> DataLoaderImpl<'a> {
     pub fn new(
         database_connection: &'a SqliteConnection,
-        product_data_provider: Box<dyn DataProvider<NewProduct>>,
+        product_data_provider: Box<dyn DataProvider<Product>>,
     ) -> DataLoaderImpl<'a> {
         Self {
             database_connection,
@@ -56,13 +56,13 @@ mod tests {
     fn empties_product_table_before_insert() {
         let database_connection = SqliteConnection::establish(":memory:").unwrap();
 
-        let mut product_data_provider = DataProviderMock::<NewProduct>::new();
+        let mut product_data_provider = DataProviderMock::<Product>::new();
 
         product_data_provider
             .expect_get_data()
             .times(1)
             .returns_once(Box::new(
-                vec![NewProduct {
+                vec![Product {
                     identifier: "foo".to_string(),
                     name: "foo bar".to_string(),
                     price: 120,
@@ -75,7 +75,7 @@ mod tests {
             .expect_get_data()
             .times(1)
             .returns_once(Box::new(
-                vec![NewProduct {
+                vec![Product {
                     identifier: "bar".to_string(),
                     name: "bar baz".to_string(),
                     price: 250,
