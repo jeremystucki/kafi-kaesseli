@@ -3,6 +3,9 @@
 #[macro_use]
 extern crate diesel;
 
+#[macro_use]
+extern crate diesel_migrations;
+
 use crate::models::Product;
 
 mod currency_formatter;

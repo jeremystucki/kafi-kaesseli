@@ -40,7 +40,10 @@ impl DataLoader for DataLoaderImpl<'_> {
                         .execute(self.database_connection)
                 })
             })
-            .find(Result::is_err)
+            .find(|result| match result {
+                Ok(Ok(_)) => false,
+                _ => true,
+            })
             .map_or_else(|| Ok(()), |_| Err(()))
     }
 }
@@ -57,7 +60,11 @@ mod tests {
     fn empties_product_table_before_insert() {
         let database_connection = SqliteConnection::establish(":memory:").unwrap();
 
+        embed_migrations!("migrations");
+        embedded_migrations::run(&database_connection).unwrap();
+
         let mut product_data_provider = DataProviderMock::<Product>::new();
+        product_data_provider.expect_get_data_calls_in_order();
 
         product_data_provider
             .expect_get_data()
