@@ -53,6 +53,7 @@ mod tests {
     use crate::data_provider::DataProviderMock;
     use crate::models::Product;
 
+    #[test]
     fn empties_product_table_before_insert() {
         let database_connection = SqliteConnection::establish(":memory:").unwrap();
 
