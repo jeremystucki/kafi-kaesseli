@@ -1,5 +1,6 @@
 CREATE VIEW balances AS
-SELECT users.name,
+SELECT users.id user_id,
+       users.name,
        SUM(transactions.amount) balance
 FROM transactions,
      users

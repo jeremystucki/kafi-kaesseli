@@ -25,6 +25,7 @@ table! {
 
 table! {
     balances (id) {
+        user_id -> Integer,
         name -> Text,
         balance -> Integer,
     }
