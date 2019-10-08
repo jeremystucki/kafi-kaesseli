@@ -11,6 +11,8 @@ use crate::models::Product;
 
 mod currency_formatter;
 mod currency_parser;
+
+mod message_handler;
 mod message_router;
 
 mod models;
@@ -22,27 +24,32 @@ mod data_provider;
 mod product_data_source;
 
 #[derive(Debug, PartialEq)]
-struct Person {
+pub struct Person {
     id: usize,
     name: String,
 }
 
 #[derive(Debug, PartialEq)]
-struct Message {
+pub struct Message {
     sender: Person,
     contents: String,
 }
 
-type Rappen = i32;
+#[derive(Debug, PartialEq)]
+pub struct Response {
+    contents: String,
+}
+
+pub type Rappen = i32;
 
 #[derive(Debug, PartialEq)]
-enum Command {
+pub enum Command {
     GetCurrentStats,
     ListAvailableItems,
 }
 
 #[derive(Debug, PartialEq)]
-enum MessageAction {
+pub enum MessageAction {
     Amount(Rappen),
     Command(Command),
     Product(Product),
