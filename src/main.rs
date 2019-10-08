@@ -1,8 +1,25 @@
 #![allow(dead_code)]
+#![allow(unused_imports)]
+
+#[macro_use]
+extern crate diesel;
+
+#[macro_use]
+extern crate diesel_migrations;
+
+use crate::models::Product;
 
 mod currency_formatter;
 mod currency_parser;
 mod message_router;
+
+mod models;
+mod schema;
+
+mod data_loader;
+mod data_provider;
+
+mod product_data_source;
 
 #[derive(Debug, PartialEq)]
 struct Person {
@@ -25,17 +42,10 @@ enum Command {
 }
 
 #[derive(Debug, PartialEq)]
-struct Product {
-    identifier: String,
-    name: String,
-    price: Rappen,
-}
-
-#[derive(Debug, PartialEq)]
-enum MessageAction<'a> {
+enum MessageAction {
     Amount(Rappen),
     Command(Command),
-    Product(&'a Product),
+    Product(Product),
 }
 
 fn main() {
