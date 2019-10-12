@@ -73,7 +73,7 @@ mod tests {
 
         let message = Message {
             sender: Person {
-                id: 0,
+                id: "some id".to_string(),
                 name: "Test".to_string(),
             },
             contents: "Foo".to_string(),
@@ -96,7 +96,7 @@ mod tests {
 
         let message = Message {
             sender: Person {
-                id: 0,
+                id: "some id".to_string(),
                 name: "Test".to_string(),
             },
             contents: "/stats".to_string(),
@@ -122,7 +122,7 @@ mod tests {
 
         let message = Message {
             sender: Person {
-                id: 0,
+                id: "some id".to_string(),
                 name: "Test".to_string(),
             },
             contents: "/list".to_string(),
@@ -158,7 +158,7 @@ mod tests {
 
         let message = Message {
             sender: Person {
-                id: 0,
+                id: "some id".to_string(),
                 name: "Test".to_string(),
             },
             contents: "/foo".to_string(),
@@ -191,7 +191,7 @@ mod tests {
 
         let message = Message {
             sender: Person {
-                id: 0,
+                id: "some id".to_string(),
                 name: "Test".to_string(),
             },
             contents: "foo".to_string(),
@@ -222,7 +222,7 @@ mod tests {
 
         let message = Message {
             sender: Person {
-                id: 0,
+                id: "some id".to_string(),
                 name: "Test".to_string(),
             },
             contents: "1.20".to_string(),
@@ -249,7 +249,7 @@ mod tests {
 
         let message = Message {
             sender: Person {
-                id: 0,
+                id: "some id".to_string(),
                 name: "Test".to_string(),
             },
             contents: "1.20".to_string(),

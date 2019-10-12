@@ -10,22 +10,22 @@ table! {
     transactions (id) {
         id -> Integer,
         amount -> Integer,
-        timestamp -> Text,
-        user -> Integer,
-        message -> Text,
+        timestamp -> Timestamp,
+        user -> Text,
+        product_name -> Text,
     }
 }
 
 table! {
     users (id) {
-        id -> Integer,
+        id -> Text,
         name -> Text,
     }
 }
 
 table! {
     balances (user_id) {
-        user_id -> Integer,
+        user_id -> Text,
         name -> Text,
         balance -> Integer,
     }

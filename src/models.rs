@@ -1,4 +1,5 @@
-use crate::schema::products;
+use crate::schema::*;
+use chrono::{NaiveDate, NaiveDateTime};
 
 #[derive(Queryable, Insertable, Identifiable, Clone, Debug)]
 #[primary_key(identifier)]
@@ -16,7 +17,21 @@ impl PartialEq for Product {
 
 #[derive(Queryable, Clone, Debug)]
 pub struct Balance {
-    pub user_id: i32,
+    pub user_id: String,
     pub name: String,
     pub amount: i32,
+}
+
+#[derive(Queryable, Insertable, Identifiable, Clone, Debug)]
+pub struct User {
+    pub id: String,
+    pub name: String,
+}
+
+#[derive(Insertable, Clone, Debug)]
+pub struct Transaction {
+    amount: i32,
+    timestamp: NaiveDateTime,
+    user: String,
+    product_name: Option<String>,
 }

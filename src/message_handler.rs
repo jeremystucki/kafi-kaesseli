@@ -1,9 +1,10 @@
 use crate::currency_formatter::CurrencyFormatter;
 use crate::message_router::MessageRouter;
 use crate::models::{Balance, Product};
-use crate::schema::{balances, products};
-use crate::{Command, Message, MessageAction, Person, Response};
+use crate::schema::{balances, products, users};
+use crate::{Command, Message, MessageAction, Person, Rappen, Response};
 use diesel::{RunQueryDsl, SqliteConnection};
+use diesel_migrations::name;
 
 pub trait MessageHandler {
     fn handle_message(&self, message: &Message) -> Vec<Response>;
@@ -26,6 +27,10 @@ impl MessageHandlerImpl<'_> {
             MessageAction::Product(product) => unimplemented!(),
             MessageAction::Amount(amount) => unimplemented!(),
         }
+    }
+
+    fn register_transaction(&self, amount: Rappen, product: Option<Product>, sender: &Person) {
+        unimplemented!()
     }
 
     fn handle_command(&self, command: Command, sender: &Person) -> Vec<Response> {
@@ -134,7 +139,7 @@ mod tests {
     fn message_mock() -> Message {
         Message {
             sender: Person {
-                id: 1,
+                id: "some id".to_string(),
                 name: "foo".to_string(),
             },
             contents: "bar".to_string(),
