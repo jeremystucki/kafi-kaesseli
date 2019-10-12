@@ -24,25 +24,27 @@ mod tests {
     use super::*;
     use crate::currency_formatter::CurrencyFormatterMock;
     use crate::message_router::MessageRouterMock;
-    use crate::{Person, Response};
+    use crate::{Command, MessageAction, Person, Response};
     use diesel::Connection;
 
-    #[test]
-    fn invalid_message() {
-        let message = Message {
+    fn message_mock() -> Message {
+        Message {
             sender: Person {
                 id: 1,
                 name: "foo".to_string(),
             },
             contents: "bar".to_string(),
-        };
+        }
+    }
 
+    #[test]
+    fn invalid_message() {
         let database_connection = SqliteConnection::establish(":memory:").unwrap();
 
         let mut message_router = MessageRouterMock::new();
         message_router
-            .expect_route_message(|arg| arg.partial_eq(&message))
-            .returns(None);
+            .expect_route_message(|arg| arg.any())
+            .returns_once(Ok(None));
 
         let currency_formatter = CurrencyFormatterMock::new();
 
@@ -52,7 +54,7 @@ mod tests {
             currency_formatter: Box::new(currency_formatter),
         };
 
-        let responses = message_handler.handle_message(message);
+        let responses = message_handler.handle_message(message_mock());
         assert_eq!(
             vec![Response {
                 contents: "Invalid input".to_string()

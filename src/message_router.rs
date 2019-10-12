@@ -2,6 +2,10 @@ use crate::currency_parser::CurrencyParser;
 use crate::product_data_source::ProductDataSource;
 use crate::{Command, Message, MessageAction, Product};
 
+#[cfg(test)]
+use mockiato::mockable;
+
+#[cfg_attr(test, mockable)]
 pub trait MessageRouter {
     fn route_message(&self, message: &Message) -> Result<Option<MessageAction>, ()>;
 }
