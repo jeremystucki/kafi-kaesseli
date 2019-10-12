@@ -13,3 +13,10 @@ impl PartialEq for Product {
         self.identifier == other.identifier
     }
 }
+
+#[derive(Queryable, Clone, Debug)]
+pub struct Balance {
+    pub user_id: i32,
+    pub name: String,
+    pub amount: i32,
+}

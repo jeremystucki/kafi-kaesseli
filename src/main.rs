@@ -25,7 +25,7 @@ mod product_data_source;
 
 #[derive(Debug, PartialEq)]
 pub struct Person {
-    id: usize,
+    id: i32,
     name: String,
 }
 

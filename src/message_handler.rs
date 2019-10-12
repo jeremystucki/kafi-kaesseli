@@ -1,12 +1,12 @@
 use crate::currency_formatter::CurrencyFormatter;
 use crate::message_router::MessageRouter;
-use crate::models::Product;
-use crate::schema::products;
-use crate::{Command, Message, MessageAction, Response};
+use crate::models::{Balance, Product};
+use crate::schema::{balances, products};
+use crate::{Command, Message, MessageAction, Person, Response};
 use diesel::{RunQueryDsl, SqliteConnection};
 
 pub trait MessageHandler {
-    fn handle_message(&self, message: Message) -> Vec<Response>;
+    fn handle_message(&self, message: &Message) -> Vec<Response>;
 }
 
 pub struct MessageHandlerImpl<'a> {
@@ -16,15 +16,19 @@ pub struct MessageHandlerImpl<'a> {
 }
 
 impl MessageHandlerImpl<'_> {
-    fn handle_message_action(&self, message_action: MessageAction) -> Vec<Response> {
+    fn handle_message_action(
+        &self,
+        message_action: MessageAction,
+        sender: &Person,
+    ) -> Vec<Response> {
         match message_action {
-            MessageAction::Command(command) => self.handle_command(command),
+            MessageAction::Command(command) => self.handle_command(command, sender),
             MessageAction::Product(product) => unimplemented!(),
             MessageAction::Amount(amount) => unimplemented!(),
         }
     }
 
-    fn handle_command(&self, command: Command) -> Vec<Response> {
+    fn handle_command(&self, command: Command, sender: &Person) -> Vec<Response> {
         match command {
             Command::ListAvailableItems => self
                 .get_available_products()
@@ -38,7 +42,18 @@ impl MessageHandlerImpl<'_> {
                         contents: "Internal error (2)".to_string(),
                     }]
                 }),
-            Command::GetCurrentStats => unimplemented!(),
+            Command::GetCurrentStats => self
+                .get_balances()
+                .map(|balances| {
+                    vec![Response {
+                        contents: self.format_balances(balances, sender),
+                    }]
+                })
+                .unwrap_or_else(|_| {
+                    vec![Response {
+                        contents: "Internal error (3)".to_string(),
+                    }]
+                }),
         }
     }
 
@@ -63,18 +78,47 @@ impl MessageHandlerImpl<'_> {
 
         format!("{}\n{}", message_header, message_body)
     }
+
+    fn get_balances(&self) -> Result<Vec<Balance>, ()> {
+        balances::dsl::balances
+            .load::<Balance>(self.database_connection)
+            .map_err(|_| ())
+    }
+
+    fn format_balances(&self, balances: Vec<Balance>, sender: &Person) -> String {
+        let message_header = "Current stats:";
+        let message_body = balances
+            .into_iter()
+            .map(|balance| {
+                let text = format!(
+                    "{} - {}",
+                    balance.name,
+                    self.currency_formatter.format_amount(balance.amount)
+                );
+
+                if balance.user_id == sender.id {
+                    format!("**{}**", text)
+                } else {
+                    text
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        format!("{}\n{}", message_header, message_body)
+    }
 }
 
 impl MessageHandler for MessageHandlerImpl<'_> {
-    fn handle_message(&self, message: Message) -> Vec<Response> {
-        match self.message_router.route_message(&message) {
+    fn handle_message(&self, message: &Message) -> Vec<Response> {
+        match self.message_router.route_message(message) {
             Err(_) => vec![Response {
                 contents: "Internal error (1)".to_string(),
             }],
             Ok(None) => vec![Response {
                 contents: "Invalid input".to_string(),
             }],
-            Ok(Some(message_action)) => self.handle_message_action(message_action),
+            Ok(Some(message_action)) => self.handle_message_action(message_action, &message.sender),
         }
     }
 }
@@ -114,7 +158,7 @@ mod tests {
             currency_formatter: Box::new(currency_formatter),
         };
 
-        let responses = message_handler.handle_message(message_mock());
+        let responses = message_handler.handle_message(&message_mock());
         assert_eq!(
             vec![Response {
                 contents: "Invalid input".to_string()
