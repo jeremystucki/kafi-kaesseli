@@ -57,11 +57,11 @@ impl MessageHandlerImpl<'_> {
             }
         };
 
-        if let Ok(products) = self.get_available_products() {
+        if let Ok(formatted_products) = self.get_formatted_available_products() {
             vec![
                 confirmation,
                 Response {
-                    contents: self.format_available_products(products),
+                    contents: formatted_products,
                 },
             ]
         } else {
@@ -122,10 +122,10 @@ impl MessageHandlerImpl<'_> {
     fn handle_command(&self, command: Command, sender: &Person) -> Vec<Response> {
         match command {
             Command::ListAvailableItems => self
-                .get_available_products()
-                .map(|products| {
+                .get_formatted_available_products()
+                .map(|formatted_products| {
                     vec![Response {
-                        contents: self.format_available_products(products),
+                        contents: formatted_products,
                     }]
                 })
                 .unwrap_or_else(|_| {
@@ -148,15 +148,20 @@ impl MessageHandlerImpl<'_> {
         }
     }
 
+    fn get_formatted_available_products(&self) -> Result<String, ()> {
+        self.get_available_products()
+            .map(|products| self.format_products(products))
+    }
+
     fn get_available_products(&self) -> Result<Vec<Product>, ()> {
         products::dsl::products
             .load::<Product>(self.database_connection)
             .map_err(|_| ())
     }
 
-    fn format_available_products(&self, available_products: Vec<Product>) -> String {
+    fn format_products(&self, products: Vec<Product>) -> String {
         let message_header = "Available products:";
-        let message_body = available_products
+        let message_body = products
             .into_iter()
             .map(|product| {
                 format!(
