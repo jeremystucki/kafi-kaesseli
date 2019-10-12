@@ -1,9 +1,10 @@
 use crate::currency_formatter::CurrencyFormatter;
 use crate::message_router::MessageRouter;
-use crate::models::{Balance, Product};
+use crate::models::{Balance, Product, Transaction, User};
 use crate::schema::{balances, products, users};
 use crate::{Command, Message, MessageAction, Person, Rappen, Response};
-use diesel::{RunQueryDsl, SqliteConnection};
+use chrono::prelude::Utc;
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection};
 use diesel_migrations::name;
 
 pub trait MessageHandler {
@@ -24,13 +25,56 @@ impl MessageHandlerImpl<'_> {
     ) -> Vec<Response> {
         match message_action {
             MessageAction::Command(command) => self.handle_command(command, sender),
-            MessageAction::Product(product) => unimplemented!(),
-            MessageAction::Amount(amount) => unimplemented!(),
+            MessageAction::Product(product) => {
+                self.register_transaction(-product.price, Some(product), sender)
+            }
+            MessageAction::Amount(amount) => self.register_transaction(amount, None, sender),
         }
     }
 
-    fn register_transaction(&self, amount: Rappen, product: Option<Product>, sender: &Person) {
-        unimplemented!()
+    fn register_transaction(
+        &self,
+        amount: Rappen,
+        product: Option<Product>,
+        sender: &Person,
+    ) -> Result<(), ()> {
+        use transactions::dsl::*;
+
+        self.update_user(sender)?;
+
+        diesel::insert_into(transactions)
+            .values(&Transaction {
+                amount,
+                timestamp: Utc::now().naive_utc(),
+                user: sender.id,
+                product_name: product.map(|product| product.name),
+            })
+            .execute(&self.database_connection)
+            .map_or_else(|_| Err(()), |_| Ok(()))
+    }
+
+    fn update_user(&self, sender: &Person) -> Result<(), ()> {
+        use users::dsl::*;
+
+        let Person { id, name } = sender;
+
+        let result = diesel::update(id.eq(id))
+            .set(name.eq(name))
+            .execute(&self.database_connection);
+
+        match result {
+            Ok(_) => return Ok(()),
+            Err(diesel::NotFound) => (),
+            Err(_) => return Err(()),
+        };
+
+        diesel::insert_into(users::table)
+            .values(&User {
+                id: id.to_string(),
+                name: name.to_string(),
+            })
+            .execute(&self.database_connection)
+            .map_or_else(|_| Err(()), |_| Ok(()))
     }
 
     fn handle_command(&self, command: Command, sender: &Person) -> Vec<Response> {
