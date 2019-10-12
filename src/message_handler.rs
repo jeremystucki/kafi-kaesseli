@@ -28,7 +28,10 @@ impl MessageHandlerImpl<'_> {
             MessageAction::Product(product) => {
                 let product_name = product.name.clone();
 
-                if let Err(_) = self.register_transaction(-product.price, Some(product), sender) {
+                if self
+                    .register_transaction(-product.price, Some(product), sender)
+                    .is_err()
+                {
                     return vec![Response {
                         contents: "Internal error (4)".to_string(),
                     }];
@@ -39,7 +42,7 @@ impl MessageHandlerImpl<'_> {
                 }
             }
             MessageAction::Amount(amount) => {
-                if let Err(_) = self.register_transaction(amount, None, sender) {
+                if self.register_transaction(amount, None, sender).is_err() {
                     return vec![Response {
                         contents: "Internal error (5)".to_string(),
                     }];
