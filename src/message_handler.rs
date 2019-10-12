@@ -1,7 +1,7 @@
 use crate::currency_formatter::CurrencyFormatter;
 use crate::message_router::MessageRouter;
 use crate::models::{Balance, Product, Transaction, User};
-use crate::schema::{balances, products, users};
+use crate::schema::{balances, products, transactions, users};
 use crate::{Command, Message, MessageAction, Person, Rappen, Response};
 use chrono::prelude::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection};
@@ -23,12 +23,46 @@ impl MessageHandlerImpl<'_> {
         message_action: MessageAction,
         sender: &Person,
     ) -> Vec<Response> {
-        match message_action {
-            MessageAction::Command(command) => self.handle_command(command, sender),
+        let confirmation = match message_action {
+            MessageAction::Command(command) => return self.handle_command(command, sender),
             MessageAction::Product(product) => {
-                self.register_transaction(-product.price, Some(product), sender)
+                let product_name = product.name.clone();
+
+                if let Err(_) = self.register_transaction(-product.price, Some(product), sender) {
+                    return vec![Response {
+                        contents: "Internal error (4)".to_string(),
+                    }];
+                } else {
+                    Response {
+                        contents: format!("Recorded {}", product_name),
+                    }
+                }
             }
-            MessageAction::Amount(amount) => self.register_transaction(amount, None, sender),
+            MessageAction::Amount(amount) => {
+                if let Err(_) = self.register_transaction(amount, None, sender) {
+                    return vec![Response {
+                        contents: "Internal error (5)".to_string(),
+                    }];
+                } else {
+                    Response {
+                        contents: format!(
+                            "Recorded {}",
+                            self.currency_formatter.format_amount(amount)
+                        ),
+                    }
+                }
+            }
+        };
+
+        if let Ok(products) = self.get_available_products() {
+            vec![
+                confirmation,
+                Response {
+                    contents: self.format_available_products(products),
+                },
+            ]
+        } else {
+            vec![confirmation]
         }
     }
 
@@ -38,29 +72,33 @@ impl MessageHandlerImpl<'_> {
         product: Option<Product>,
         sender: &Person,
     ) -> Result<(), ()> {
-        use transactions::dsl::*;
+        use transactions::dsl;
+
+        let sender_id = sender.id.clone();
 
         self.update_user(sender)?;
 
-        diesel::insert_into(transactions)
+        diesel::insert_into(transactions::table)
             .values(&Transaction {
                 amount,
                 timestamp: Utc::now().naive_utc(),
-                user: sender.id,
+                user: sender_id,
                 product_name: product.map(|product| product.name),
             })
-            .execute(&self.database_connection)
-            .map_or_else(|_| Err(()), |_| Ok(()))
+            .execute(self.database_connection)
+            .map(|_| Ok(()))
+            .unwrap_or_else(|_| Err(()))
     }
 
     fn update_user(&self, sender: &Person) -> Result<(), ()> {
-        use users::dsl::*;
+        use users::dsl;
 
         let Person { id, name } = sender;
 
-        let result = diesel::update(id.eq(id))
-            .set(name.eq(name))
-            .execute(&self.database_connection);
+        let result = diesel::update(users::table)
+            .filter(dsl::id.eq(id))
+            .set(dsl::name.eq(name))
+            .execute(self.database_connection);
 
         match result {
             Ok(_) => return Ok(()),
@@ -73,8 +111,9 @@ impl MessageHandlerImpl<'_> {
                 id: id.to_string(),
                 name: name.to_string(),
             })
-            .execute(&self.database_connection)
-            .map_or_else(|_| Err(()), |_| Ok(()))
+            .execute(self.database_connection)
+            .map(|_| Ok(()))
+            .unwrap_or_else(|_| Err(()))
     }
 
     fn handle_command(&self, command: Command, sender: &Person) -> Vec<Response> {
