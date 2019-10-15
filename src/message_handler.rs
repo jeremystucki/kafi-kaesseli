@@ -1,11 +1,12 @@
+use chrono::prelude::Utc;
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection};
+use diesel_migrations::name;
+
 use crate::currency_formatter::CurrencyFormatter;
 use crate::message_router::MessageRouter;
 use crate::models::{Balance, Product, Transaction, User};
 use crate::schema::{balances, products, transactions, users};
 use crate::{Command, Message, MessageAction, Person, Rappen, Response};
-use chrono::prelude::Utc;
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection};
-use diesel_migrations::name;
 
 use balances::dsl::balances as balances_dsl;
 use products::dsl::products as products_dsl;
@@ -87,8 +88,8 @@ impl MessageHandlerImpl<'_> {
                 product_name: product.map(|product| product.name.clone()),
             })
             .execute(self.database_connection)
-            .map(|_| Ok(()))
-            .unwrap_or_else(|_| Err(()))
+            .map(|_| ())
+            .map_err(|_| ())
     }
 
     fn update_user(&self, sender: &Person) -> Result<(), ()> {
