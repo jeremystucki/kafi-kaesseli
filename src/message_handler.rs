@@ -7,6 +7,11 @@ use chrono::prelude::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection};
 use diesel_migrations::name;
 
+use balances::dsl::balances as balances_dsl;
+use products::dsl::products as products_dsl;
+use transactions::dsl::transactions as transactions_dsl;
+use users::dsl::users as users_dsl;
+
 pub trait MessageHandler {
     fn handle_message(&self, message: &Message) -> Vec<Response>;
 }
@@ -29,16 +34,16 @@ impl MessageHandlerImpl<'_> {
                 let product_name = product.name.clone();
 
                 if self
-                    .register_transaction(-product.price, Some(product), sender)
+                    .register_transaction(-product.price, Some(&product), sender)
                     .is_err()
                 {
                     return vec![Response {
                         contents: "Internal error (4)".to_string(),
                     }];
-                } else {
-                    Response {
-                        contents: format!("Recorded {}", product_name),
-                    }
+                }
+
+                Response {
+                    contents: format!("Recorded {}", product_name),
                 }
             }
             MessageAction::Amount(amount) => {
@@ -46,22 +51,19 @@ impl MessageHandlerImpl<'_> {
                     return vec![Response {
                         contents: "Internal error (5)".to_string(),
                     }];
-                } else {
-                    Response {
-                        contents: format!(
-                            "Recorded {}",
-                            self.currency_formatter.format_amount(amount)
-                        ),
-                    }
+                }
+
+                Response {
+                    contents: format!("Recorded {}", self.currency_formatter.format_amount(amount)),
                 }
             }
         };
 
-        if let Ok(formatted_products) = self.get_formatted_available_products() {
+        if let Ok(formatted_balances) = self.get_formatted_balances(&sender) {
             vec![
                 confirmation,
                 Response {
-                    contents: formatted_products,
+                    contents: formatted_balances,
                 },
             ]
         } else {
@@ -72,21 +74,17 @@ impl MessageHandlerImpl<'_> {
     fn register_transaction(
         &self,
         amount: Rappen,
-        product: Option<Product>,
+        product: Option<&Product>,
         sender: &Person,
     ) -> Result<(), ()> {
-        use transactions::dsl;
-
-        let sender_id = sender.id.clone();
-
         self.update_user(sender)?;
 
         diesel::insert_into(transactions::table)
             .values(&Transaction {
                 amount,
                 timestamp: Utc::now().naive_utc(),
-                user: sender_id,
-                product_name: product.map(|product| product.name),
+                user: sender.id.clone(),
+                product_name: product.map(|product| product.name.clone()),
             })
             .execute(self.database_connection)
             .map(|_| Ok(()))
@@ -94,13 +92,11 @@ impl MessageHandlerImpl<'_> {
     }
 
     fn update_user(&self, sender: &Person) -> Result<(), ()> {
-        use users::dsl;
-
         let Person { id, name } = sender;
 
         let result = diesel::update(users::table)
-            .filter(dsl::id.eq(id))
-            .set(dsl::name.eq(name))
+            .filter(users::id.eq(id))
+            .set(users::name.eq(name))
             .execute(self.database_connection);
 
         match result {
@@ -120,46 +116,30 @@ impl MessageHandlerImpl<'_> {
     }
 
     fn handle_command(&self, command: Command, sender: &Person) -> Vec<Response> {
-        match command {
+        let contents = match command {
             Command::ListAvailableItems => self
                 .get_formatted_available_products()
-                .map(|formatted_products| {
-                    vec![Response {
-                        contents: formatted_products,
-                    }]
-                })
-                .unwrap_or_else(|_| {
-                    vec![Response {
-                        contents: "Internal error (2)".to_string(),
-                    }]
-                }),
+                .unwrap_or_else(|_| "Internal error (2)".to_string()),
             Command::GetCurrentStats => self
-                .get_balances()
-                .map(|balances| {
-                    vec![Response {
-                        contents: self.format_balances(balances, sender),
-                    }]
-                })
-                .unwrap_or_else(|_| {
-                    vec![Response {
-                        contents: "Internal error (3)".to_string(),
-                    }]
-                }),
-        }
+                .get_formatted_balances(sender)
+                .unwrap_or_else(|_| "Internal error (3)".to_string()),
+        };
+
+        vec![Response { contents }]
     }
 
     fn get_formatted_available_products(&self) -> Result<String, ()> {
         self.get_available_products()
-            .map(|products| self.format_products(products))
+            .map(|products| self.format_products(&products))
     }
 
     fn get_available_products(&self) -> Result<Vec<Product>, ()> {
-        products::dsl::products
+        products_dsl
             .load::<Product>(self.database_connection)
             .map_err(|_| ())
     }
 
-    fn format_products(&self, products: Vec<Product>) -> String {
+    fn format_products(&self, products: &[Product]) -> String {
         let message_header = "Available products:";
         let message_body = products
             .into_iter()
@@ -175,8 +155,13 @@ impl MessageHandlerImpl<'_> {
         format!("{}\n{}", message_header, message_body)
     }
 
+    fn get_formatted_balances(&self, sender: &Person) -> Result<String, ()> {
+        self.get_balances()
+            .map(|balances| self.format_balances(balances, sender))
+    }
+
     fn get_balances(&self) -> Result<Vec<Balance>, ()> {
-        balances::dsl::balances
+        balances_dsl
             .load::<Balance>(self.database_connection)
             .map_err(|_| ())
     }
