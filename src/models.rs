@@ -22,7 +22,7 @@ pub struct Balance {
     pub amount: i32,
 }
 
-#[derive(Queryable, Insertable, Identifiable, Clone, Debug)]
+#[derive(Queryable, Insertable, Identifiable, Debug)]
 pub struct User {
     pub id: String,
     pub name: String,
@@ -34,7 +34,7 @@ impl PartialEq for User {
     }
 }
 
-#[derive(Insertable, Clone, Debug)]
+#[derive(Insertable, Debug)]
 pub struct Transaction {
     pub amount: i32,
     pub timestamp: NaiveDateTime,
