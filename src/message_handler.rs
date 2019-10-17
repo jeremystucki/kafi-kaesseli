@@ -134,7 +134,7 @@ impl MessageHandlerImpl<'_> {
     fn format_products(&self, products: &[Product]) -> String {
         let message_header = "Available products:";
         let message_body = products
-            .into_iter()
+            .iter()
             .map(|product| {
                 format!(
                     "- /{} - {} ({})",
