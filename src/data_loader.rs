@@ -1,8 +1,11 @@
 use diesel::{RunQueryDsl, SqliteConnection};
 
-use crate::data_provider::DataProvider;
 use crate::models::Product;
 use crate::schema::products;
+
+use data_provider::*;
+
+mod data_provider;
 
 pub trait DataLoader {
     fn load_product_data(&self) -> Result<(), ()>;
@@ -53,9 +56,11 @@ mod tests {
     use diesel::Connection;
 
     use super::*;
-    use crate::data_provider::DataProviderMock;
+
     use crate::models::Product;
     use crate::test_utils::*;
+
+    use data_provider::DataProviderMock;
 
     #[test]
     fn empties_product_table_before_insert() {

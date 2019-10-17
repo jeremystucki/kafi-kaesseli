@@ -2,7 +2,7 @@ use chrono::prelude::Utc;
 use diesel::{insert_into, update, ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection};
 use diesel_migrations::name;
 
-use crate::currency_formatter::CurrencyFormatter;
+use crate::currency_handling::currency_formatter::CurrencyFormatter;
 use crate::message_router::MessageRouter;
 use crate::models::{Balance, Product, Transaction, User};
 use crate::schema::{balances, products, transactions, users};
@@ -199,7 +199,7 @@ impl MessageHandler for MessageHandlerImpl<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::currency_formatter::CurrencyFormatterMock;
+    use crate::currency_handling::currency_formatter::CurrencyFormatterMock;
     use crate::message_router::MessageRouterMock;
     use crate::{Command, MessageAction, Response, User};
     use diesel::Connection;

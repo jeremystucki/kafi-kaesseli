@@ -9,8 +9,7 @@ extern crate diesel_migrations;
 
 use crate::models::{Product, User};
 
-mod currency_formatter;
-mod currency_parser;
+mod currency_handling;
 
 mod message_handler;
 mod message_router;
@@ -19,9 +18,8 @@ mod models;
 mod schema;
 
 mod data_loader;
-mod data_provider;
 
-mod product_service;
+mod services;
 
 #[cfg(test)]
 mod test_utils;
@@ -60,6 +58,7 @@ fn main() {
 mod tests {
     use super::*;
     use currency_formatter::CurrencyFormatter;
+    use currency_handling::*;
     use currency_parser::CurrencyParser;
 
     fn format_and_parse(amount: Rappen) {

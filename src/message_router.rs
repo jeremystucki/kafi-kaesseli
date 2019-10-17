@@ -1,5 +1,5 @@
-use crate::currency_parser::CurrencyParser;
-use crate::product_service::ProductService;
+use crate::currency_handling::currency_parser::CurrencyParser;
+use crate::services::product_service::ProductService;
 use crate::{Command, Message, MessageAction, Product};
 
 #[cfg(test)]
@@ -53,8 +53,8 @@ impl MessageRouter for MessageRouterImpl {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::currency_parser::CurrencyParserMock;
-    use crate::product_service::ProductServiceMock;
+    use crate::currency_handling::currency_parser::CurrencyParserMock;
+    use crate::services::product_service::ProductServiceMock;
     use crate::User;
 
     #[test]
