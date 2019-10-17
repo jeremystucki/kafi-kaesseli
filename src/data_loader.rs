@@ -55,13 +55,11 @@ mod tests {
     use super::*;
     use crate::data_provider::DataProviderMock;
     use crate::models::Product;
+    use crate::test_utils::*;
 
     #[test]
     fn empties_product_table_before_insert() {
-        let database_connection = SqliteConnection::establish(":memory:").unwrap();
-
-        embed_migrations!("migrations");
-        embedded_migrations::run(&database_connection).unwrap();
+        let database_connection = setup_in_memory_database();
 
         let mut product_data_provider = DataProviderMock::<Product>::new();
         product_data_provider.expect_get_data_calls_in_order();

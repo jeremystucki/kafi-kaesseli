@@ -23,6 +23,9 @@ mod data_provider;
 
 mod product_service;
 
+#[cfg(test)]
+mod test_utils;
+
 #[derive(Debug, PartialEq)]
 pub struct Message {
     sender: User,
