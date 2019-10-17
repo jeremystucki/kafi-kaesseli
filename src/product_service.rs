@@ -10,15 +10,15 @@ use products::dsl::products as products_dsl;
 use mockiato::mockable;
 
 #[cfg_attr(test, mockable)]
-pub trait ProductDataSource {
+pub trait ProductService {
     fn get_product_with_identifier(&self, identifier: &str) -> Result<Option<Product>, ()>;
 }
 
-pub struct ProductDataSourceImpl<'a> {
+pub struct ProductServiceImpl<'a> {
     database_connection: &'a SqliteConnection,
 }
 
-impl<'a> ProductDataSourceImpl<'a> {
+impl<'a> ProductServiceImpl<'a> {
     fn new(database_connection: &'a SqliteConnection) -> Self {
         Self {
             database_connection,
@@ -26,12 +26,15 @@ impl<'a> ProductDataSourceImpl<'a> {
     }
 }
 
-impl ProductDataSource for ProductDataSourceImpl<'_> {
+impl ProductService for ProductServiceImpl<'_> {
     fn get_product_with_identifier(&self, identifier: &str) -> Result<Option<Product>, ()> {
-        products_dsl
-            .filter(products::identifier.eq(identifier))
-            .load::<Product>(self.database_connection)
-            .map(|products| products.into_iter().next())
-            .map_err(|_| ())
+        match products_dsl
+            .find(identifier)
+            .first::<Product>(self.database_connection)
+        {
+            Ok(product) => Ok(Some(product)),
+            Err(diesel::NotFound) => Ok(None),
+            Err(_) => Err(()),
+        }
     }
 }

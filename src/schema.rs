@@ -7,7 +7,7 @@ table! {
 }
 
 table! {
-    transactions (id) {
+    transactions {
         id -> Integer,
         amount -> Integer,
         timestamp -> Timestamp,
@@ -17,7 +17,7 @@ table! {
 }
 
 table! {
-    users (id) {
+    users {
         id -> Text,
         name -> Text,
     }

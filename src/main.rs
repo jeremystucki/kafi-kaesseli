@@ -21,7 +21,7 @@ mod schema;
 mod data_loader;
 mod data_provider;
 
-mod product_data_source;
+mod product_service;
 
 #[derive(Debug, PartialEq)]
 pub struct Person {

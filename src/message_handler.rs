@@ -1,5 +1,5 @@
 use chrono::prelude::Utc;
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection};
+use diesel::{insert_into, update, ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection};
 use diesel_migrations::name;
 
 use crate::currency_formatter::CurrencyFormatter;
@@ -95,16 +95,14 @@ impl MessageHandlerImpl<'_> {
     fn update_user(&self, sender: &Person) -> Result<(), ()> {
         let Person { id, name } = sender;
 
-        let result = diesel::update(users::table)
-            .filter(users::id.eq(id))
+        match update(users_dsl.find(id))
             .set(users::name.eq(name))
-            .execute(self.database_connection);
-
-        match result {
+            .execute(self.database_connection)
+        {
             Ok(_) => return Ok(()),
             Err(diesel::NotFound) => (),
             Err(_) => return Err(()),
-        };
+        }
 
         diesel::insert_into(users::table)
             .values(&User {
@@ -112,8 +110,8 @@ impl MessageHandlerImpl<'_> {
                 name: name.to_string(),
             })
             .execute(self.database_connection)
-            .map(|_| Ok(()))
-            .unwrap_or_else(|_| Err(()))
+            .map(|_| ())
+            .map_err(|_| ())
     }
 
     fn handle_command(&self, command: Command, sender: &Person) -> Vec<Response> {

@@ -1,7 +1,8 @@
 use crate::schema::*;
 use chrono::{NaiveDate, NaiveDateTime};
 
-#[derive(Queryable, Insertable, Clone, Debug)]
+#[derive(Queryable, Insertable, Identifiable, Clone, Debug)]
+#[primary_key(identifier)]
 pub struct Product {
     pub identifier: String,
     pub name: String,
@@ -21,7 +22,7 @@ pub struct Balance {
     pub amount: i32,
 }
 
-#[derive(Queryable, Insertable, Clone, Debug)]
+#[derive(Queryable, Insertable, Identifiable, Clone, Debug)]
 pub struct User {
     pub id: String,
     pub name: String,

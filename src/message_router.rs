@@ -1,5 +1,5 @@
 use crate::currency_parser::CurrencyParser;
-use crate::product_data_source::ProductDataSource;
+use crate::product_service::ProductService;
 use crate::{Command, Message, MessageAction, Product};
 
 #[cfg(test)]
@@ -11,7 +11,7 @@ pub trait MessageRouter {
 }
 
 pub struct MessageRouterImpl {
-    product_data_source: Box<dyn ProductDataSource>,
+    product_data_source: Box<dyn ProductService>,
     currency_parser: Box<dyn CurrencyParser>,
 }
 
@@ -54,7 +54,7 @@ impl MessageRouter for MessageRouterImpl {
 mod tests {
     use super::*;
     use crate::currency_parser::CurrencyParserMock;
-    use crate::product_data_source::ProductDataSourceMock;
+    use crate::product_service::ProductDataSourceMock;
     use crate::Person;
 
     #[test]
