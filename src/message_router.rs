@@ -55,7 +55,7 @@ mod tests {
     use super::*;
     use crate::currency_parser::CurrencyParserMock;
     use crate::product_service::ProductServiceMock;
-    use crate::Person;
+    use crate::User;
 
     #[test]
     fn unknown_message() {
@@ -72,7 +72,7 @@ mod tests {
             .returns(Err(()));
 
         let message = Message {
-            sender: Person {
+            sender: User {
                 id: "some id".to_string(),
                 name: "Test".to_string(),
             },
@@ -95,7 +95,7 @@ mod tests {
         let currency_parser = CurrencyParserMock::new();
 
         let message = Message {
-            sender: Person {
+            sender: User {
                 id: "some id".to_string(),
                 name: "Test".to_string(),
             },
@@ -121,7 +121,7 @@ mod tests {
         let currency_parser = CurrencyParserMock::new();
 
         let message = Message {
-            sender: Person {
+            sender: User {
                 id: "some id".to_string(),
                 name: "Test".to_string(),
             },
@@ -157,7 +157,7 @@ mod tests {
         let currency_parser = CurrencyParserMock::new();
 
         let message = Message {
-            sender: Person {
+            sender: User {
                 id: "some id".to_string(),
                 name: "Test".to_string(),
             },
@@ -190,7 +190,7 @@ mod tests {
         let currency_parser = CurrencyParserMock::new();
 
         let message = Message {
-            sender: Person {
+            sender: User {
                 id: "some id".to_string(),
                 name: "Test".to_string(),
             },
@@ -221,7 +221,7 @@ mod tests {
             .returns(Ok(120));
 
         let message = Message {
-            sender: Person {
+            sender: User {
                 id: "some id".to_string(),
                 name: "Test".to_string(),
             },
@@ -248,7 +248,7 @@ mod tests {
         let currency_parser = CurrencyParserMock::new();
 
         let message = Message {
-            sender: Person {
+            sender: User {
                 id: "some id".to_string(),
                 name: "Test".to_string(),
             },

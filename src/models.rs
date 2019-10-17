@@ -28,6 +28,12 @@ pub struct User {
     pub name: String,
 }
 
+impl PartialEq for User {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
 #[derive(Insertable, Clone, Debug)]
 pub struct Transaction {
     pub amount: i32,

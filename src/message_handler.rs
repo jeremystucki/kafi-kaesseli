@@ -6,7 +6,7 @@ use crate::currency_formatter::CurrencyFormatter;
 use crate::message_router::MessageRouter;
 use crate::models::{Balance, Product, Transaction, User};
 use crate::schema::{balances, products, transactions, users};
-use crate::{Command, Message, MessageAction, Person, Rappen, Response};
+use crate::{Command, Message, MessageAction, Rappen, Response};
 
 use balances::dsl::balances as balances_dsl;
 use products::dsl::products as products_dsl;
@@ -24,11 +24,7 @@ pub struct MessageHandlerImpl<'a> {
 }
 
 impl MessageHandlerImpl<'_> {
-    fn handle_message_action(
-        &self,
-        message_action: MessageAction,
-        sender: &Person,
-    ) -> Vec<Response> {
+    fn handle_message_action(&self, message_action: MessageAction, sender: &User) -> Vec<Response> {
         let confirmation = match message_action {
             MessageAction::Command(command) => return self.handle_command(command, sender),
             MessageAction::Product(product) => {
@@ -76,7 +72,7 @@ impl MessageHandlerImpl<'_> {
         &self,
         amount: Rappen,
         product: Option<&Product>,
-        sender: &Person,
+        sender: &User,
     ) -> Result<(), ()> {
         self.update_user(sender)?;
 
@@ -92,8 +88,8 @@ impl MessageHandlerImpl<'_> {
             .map_err(|_| ())
     }
 
-    fn update_user(&self, sender: &Person) -> Result<(), ()> {
-        let Person { id, name } = sender;
+    fn update_user(&self, sender: &User) -> Result<(), ()> {
+        let User { id, name } = sender;
 
         match update(users_dsl.find(id))
             .set(users::name.eq(name))
@@ -105,16 +101,13 @@ impl MessageHandlerImpl<'_> {
         }
 
         diesel::insert_into(users::table)
-            .values(&User {
-                id: id.to_string(),
-                name: name.to_string(),
-            })
+            .values(sender)
             .execute(self.database_connection)
             .map(|_| ())
             .map_err(|_| ())
     }
 
-    fn handle_command(&self, command: Command, sender: &Person) -> Vec<Response> {
+    fn handle_command(&self, command: Command, sender: &User) -> Vec<Response> {
         let contents = match command {
             Command::ListAvailableItems => self
                 .get_formatted_available_products()
@@ -154,7 +147,7 @@ impl MessageHandlerImpl<'_> {
         format!("{}\n{}", message_header, message_body)
     }
 
-    fn get_formatted_balances(&self, sender: &Person) -> Result<String, ()> {
+    fn get_formatted_balances(&self, sender: &User) -> Result<String, ()> {
         self.get_balances()
             .map(|balances| self.format_balances(balances, sender))
     }
@@ -165,7 +158,7 @@ impl MessageHandlerImpl<'_> {
             .map_err(|_| ())
     }
 
-    fn format_balances(&self, balances: Vec<Balance>, sender: &Person) -> String {
+    fn format_balances(&self, balances: Vec<Balance>, sender: &User) -> String {
         let message_header = "Current stats:";
         let message_body = balances
             .into_iter()
@@ -208,12 +201,12 @@ mod tests {
     use super::*;
     use crate::currency_formatter::CurrencyFormatterMock;
     use crate::message_router::MessageRouterMock;
-    use crate::{Command, MessageAction, Person, Response};
+    use crate::{Command, MessageAction, Response, User};
     use diesel::Connection;
 
     fn message_mock() -> Message {
         Message {
-            sender: Person {
+            sender: User {
                 id: "some id".to_string(),
                 name: "foo".to_string(),
             },

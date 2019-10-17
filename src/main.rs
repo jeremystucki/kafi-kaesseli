@@ -7,7 +7,7 @@ extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
 
-use crate::models::Product;
+use crate::models::{Product, User};
 
 mod currency_formatter;
 mod currency_parser;
@@ -24,14 +24,8 @@ mod data_provider;
 mod product_service;
 
 #[derive(Debug, PartialEq)]
-pub struct Person {
-    id: String,
-    name: String,
-}
-
-#[derive(Debug, PartialEq)]
 pub struct Message {
-    sender: Person,
+    sender: User,
     contents: String,
 }
 
