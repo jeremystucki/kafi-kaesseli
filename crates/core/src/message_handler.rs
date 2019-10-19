@@ -21,17 +21,17 @@ pub trait MessageHandler {
 
 pub struct MessageHandlerImpl<'a> {
     database_connection: &'a SqliteConnection,
-    message_router: Box<dyn MessageRouter>,
-    currency_formatter: Box<dyn CurrencyFormatter>,
-    user_service: Box<dyn UserService>,
+    message_router: Box<dyn MessageRouter + 'a>,
+    currency_formatter: Box<dyn CurrencyFormatter + 'a>,
+    user_service: Box<dyn UserService + 'a>,
 }
 
 impl<'a> MessageHandlerImpl<'a> {
     pub fn new(
         database_connection: &'a SqliteConnection,
-        message_router: Box<dyn MessageRouter>,
-        currency_formatter: Box<dyn CurrencyFormatter>,
-        user_service: Box<dyn UserService>,
+        message_router: Box<dyn MessageRouter + 'a>,
+        currency_formatter: Box<dyn CurrencyFormatter + 'a>,
+        user_service: Box<dyn UserService + 'a>,
     ) -> Self {
         Self {
             database_connection,
