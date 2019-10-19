@@ -1,17 +1,17 @@
-use crate::Rappen;
+use crate::models::Rappen;
 
 #[cfg(test)]
 use mockiato::mockable;
 
 #[cfg_attr(test, mockable)]
-pub trait CurrencyFormatter {
+pub(crate) trait CurrencyFormatter {
     fn format_amount(&self, amount: Rappen) -> String;
 }
 
-pub struct CurrencyFormatterImpl;
+pub(crate) struct CurrencyFormatterImpl;
 
 impl CurrencyFormatterImpl {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {}
     }
 }

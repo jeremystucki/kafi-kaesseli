@@ -12,16 +12,16 @@ use users::dsl::users as users_dsl;
 use mockiato::mockable;
 
 #[cfg_attr(test, mockable)]
-pub trait UserService {
+pub(crate) trait UserService {
     fn update_user(&self, user: &User) -> Result<(), ()>;
 }
 
-pub struct UserServiceImpl<'a> {
+pub(crate) struct UserServiceImpl<'a> {
     database_connection: &'a SqliteConnection,
 }
 
 impl<'a> UserServiceImpl<'a> {
-    pub fn new(database_connection: &'a SqliteConnection) -> Self {
+    pub(crate) fn new(database_connection: &'a SqliteConnection) -> Self {
         Self {
             database_connection,
         }

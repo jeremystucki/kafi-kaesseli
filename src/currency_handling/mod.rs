@@ -1,2 +1,2 @@
-pub mod currency_formatter;
-pub mod currency_parser;
+pub(crate) mod currency_formatter;
+pub(crate) mod currency_parser;

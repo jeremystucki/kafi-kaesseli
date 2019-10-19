@@ -5,19 +5,19 @@ use crate::schema::products;
 
 use data_provider::*;
 
-mod data_provider;
+pub mod data_provider;
 
-pub trait DataLoader {
+pub(crate) trait DataLoader {
     fn load_product_data(&self) -> Result<(), ()>;
 }
 
-pub struct DataLoaderImpl<'a> {
+pub(crate) struct DataLoaderImpl<'a> {
     database_connection: &'a SqliteConnection,
     product_data_provider: Box<dyn DataProvider<Product>>,
 }
 
 impl<'a> DataLoaderImpl<'a> {
-    pub fn new(
+    pub(crate) fn new(
         database_connection: &'a SqliteConnection,
         product_data_provider: Box<dyn DataProvider<Product>>,
     ) -> DataLoaderImpl<'a> {
