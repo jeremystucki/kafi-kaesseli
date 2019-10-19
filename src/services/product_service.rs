@@ -19,7 +19,7 @@ pub struct ProductServiceImpl<'a> {
 }
 
 impl<'a> ProductServiceImpl<'a> {
-    fn new(database_connection: &'a SqliteConnection) -> Self {
+    pub fn new(database_connection: &'a SqliteConnection) -> Self {
         Self {
             database_connection,
         }
