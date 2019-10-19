@@ -184,6 +184,7 @@ mod tests {
     use super::*;
     use crate::currency_handling::currency_formatter::CurrencyFormatterMock;
     use crate::message_router::MessageRouterMock;
+    use crate::services::user_service::UserServiceMock;
     use crate::{Command, MessageAction, Response, User};
     use diesel::Connection;
 
@@ -207,11 +208,13 @@ mod tests {
             .returns_once(Ok(None));
 
         let currency_formatter = CurrencyFormatterMock::new();
+        let user_service = UserServiceMock::new();
 
         let message_handler = MessageHandlerImpl {
             database_connection: &database_connection,
             message_router: Box::new(message_router),
             currency_formatter: Box::new(currency_formatter),
+            user_service: Box::new(user_service),
         };
 
         let responses = message_handler.handle_message(&message_mock());
