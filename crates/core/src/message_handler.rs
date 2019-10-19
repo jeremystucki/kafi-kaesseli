@@ -27,7 +27,7 @@ pub struct MessageHandlerImpl<'a> {
 }
 
 impl<'a> MessageHandlerImpl<'a> {
-    pub(crate) fn new(
+    pub fn new(
         database_connection: &'a SqliteConnection,
         message_router: Box<dyn MessageRouter>,
         currency_formatter: Box<dyn CurrencyFormatter>,

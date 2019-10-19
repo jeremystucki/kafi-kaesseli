@@ -8,3 +8,5 @@ edition = "2018"
 
 [dependencies]
 kafi-kaesseli-core = { path = "../core" }
+tbot = "0.2"
+diesel = { version = "1.4", features = ["chrono"] }

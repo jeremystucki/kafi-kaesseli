@@ -6,17 +6,17 @@ use crate::services::product_service::ProductService;
 use mockiato::mockable;
 
 #[cfg_attr(test, mockable)]
-pub(crate) trait MessageRouter {
+pub trait MessageRouter {
     fn route_message(&self, message: &Message) -> Result<Option<MessageAction>, ()>;
 }
 
-pub(crate) struct MessageRouterImpl {
+pub struct MessageRouterImpl {
     product_service: Box<dyn ProductService>,
     currency_parser: Box<dyn CurrencyParser>,
 }
 
 impl MessageRouterImpl {
-    pub(crate) fn new(
+    pub fn new(
         product_service: Box<dyn ProductService>,
         currency_parser: Box<dyn CurrencyParser>,
     ) -> Self {

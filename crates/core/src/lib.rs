@@ -9,17 +9,17 @@ extern crate diesel_migrations;
 
 use crate::models::{Product, User};
 
-mod currency_handling;
+pub mod currency_handling;
 
 pub mod message_handler;
-mod message_router;
+pub mod message_router;
 
-mod models;
+pub mod models;
 mod schema;
 
 pub mod data_loader;
 
-mod services;
+pub mod services;
 
 #[cfg(test)]
 mod test_utils;
