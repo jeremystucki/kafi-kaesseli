@@ -62,9 +62,10 @@ mod tests {
     use currency_parser::CurrencyParser;
 
     fn format_and_parse(amount: Rappen) {
-        let formatted_amount = currency_formatter::CurrencyFormatterImpl {}.format_amount(amount);
+        let formatted_amount =
+            currency_formatter::CurrencyFormatterImpl::new().format_amount(amount);
 
-        let parser = currency_parser::CurrencyParserImpl {};
+        let parser = currency_parser::CurrencyParserImpl::new();
         let parsed_amount = parser.parse_text(&formatted_amount).unwrap();
 
         assert_eq!(amount, parsed_amount);

@@ -16,6 +16,16 @@ pub struct MessageRouterImpl {
 }
 
 impl MessageRouterImpl {
+    pub fn new(
+        product_service: Box<dyn ProductService>,
+        currency_parser: Box<dyn CurrencyParser>,
+    ) -> Self {
+        Self {
+            product_service,
+            currency_parser,
+        }
+    }
+
     fn get_command(&self, message: &Message) -> Option<Command> {
         match message.contents.as_ref() {
             "/list" => Some(Command::ListAvailableItems),
@@ -79,10 +89,7 @@ mod tests {
             contents: "Foo".to_string(),
         };
 
-        let router = MessageRouterImpl {
-            product_service: Box::new(product_service),
-            currency_parser: Box::new(currency_parser),
-        };
+        let router = MessageRouterImpl::new(Box::new(product_service), Box::new(currency_parser));
 
         let action = router.route_message(&message).unwrap();
         assert_eq!(None, action);
@@ -102,10 +109,7 @@ mod tests {
             contents: "/stats".to_string(),
         };
 
-        let router = MessageRouterImpl {
-            product_service: Box::new(product_service),
-            currency_parser: Box::new(currency_parser),
-        };
+        let router = MessageRouterImpl::new(Box::new(product_service), Box::new(currency_parser));
 
         let action = router.route_message(&message).unwrap();
         assert_eq!(
@@ -128,10 +132,7 @@ mod tests {
             contents: "/list".to_string(),
         };
 
-        let router = MessageRouterImpl {
-            product_service: Box::new(product_service),
-            currency_parser: Box::new(currency_parser),
-        };
+        let router = MessageRouterImpl::new(Box::new(product_service), Box::new(currency_parser));
 
         let action = router.route_message(&message).unwrap();
         assert_eq!(
@@ -164,10 +165,7 @@ mod tests {
             contents: "/foo".to_string(),
         };
 
-        let router = MessageRouterImpl {
-            product_service: Box::new(product_service),
-            currency_parser: Box::new(currency_parser),
-        };
+        let router = MessageRouterImpl::new(Box::new(product_service), Box::new(currency_parser));
 
         let action = router.route_message(&message).unwrap();
         assert_eq!(Some(MessageAction::Product(product)), action);
@@ -197,10 +195,7 @@ mod tests {
             contents: "foo".to_string(),
         };
 
-        let router = MessageRouterImpl {
-            product_service: Box::new(product_service),
-            currency_parser: Box::new(currency_parser),
-        };
+        let router = MessageRouterImpl::new(Box::new(product_service), Box::new(currency_parser));
 
         let action = router.route_message(&message).unwrap();
         assert_eq!(Some(MessageAction::Product(product)), action);
@@ -228,10 +223,7 @@ mod tests {
             contents: "1.20".to_string(),
         };
 
-        let router = MessageRouterImpl {
-            product_service: Box::new(product_service),
-            currency_parser: Box::new(currency_parser),
-        };
+        let router = MessageRouterImpl::new(Box::new(product_service), Box::new(currency_parser));
 
         let action = router.route_message(&message).unwrap();
         assert_eq!(Some(MessageAction::Amount(120)), action);
@@ -255,10 +247,7 @@ mod tests {
             contents: "1.20".to_string(),
         };
 
-        let router = MessageRouterImpl {
-            product_service: Box::new(product_service),
-            currency_parser: Box::new(currency_parser),
-        };
+        let router = MessageRouterImpl::new(Box::new(product_service), Box::new(currency_parser));
 
         router.route_message(&message).unwrap_err();
     }

@@ -95,10 +95,8 @@ mod tests {
                 .map(Ok),
             ));
 
-        let data_loader = DataLoaderImpl {
-            database_connection: &database_connection,
-            product_data_provider: Box::new(product_data_provider),
-        };
+        let data_loader =
+            DataLoaderImpl::new(&database_connection, Box::new(product_data_provider));
 
         data_loader.load_product_data().unwrap();
         data_loader.load_product_data().unwrap();

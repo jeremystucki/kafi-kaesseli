@@ -25,7 +25,21 @@ pub struct MessageHandlerImpl<'a> {
     user_service: Box<dyn UserService>,
 }
 
-impl MessageHandlerImpl<'_> {
+impl<'a> MessageHandlerImpl<'a> {
+    pub fn new(
+        database_connection: &'a SqliteConnection,
+        message_router: Box<dyn MessageRouter>,
+        currency_formatter: Box<dyn CurrencyFormatter>,
+        user_service: Box<dyn UserService>,
+    ) -> Self {
+        Self {
+            database_connection,
+            message_router,
+            currency_formatter,
+            user_service,
+        }
+    }
+
     fn handle_message_action(&self, message_action: MessageAction, sender: &User) -> Vec<Response> {
         let confirmation = match message_action {
             MessageAction::Command(command) => return self.handle_command(command, sender),
@@ -214,12 +228,12 @@ mod tests {
         let currency_formatter = CurrencyFormatterMock::new();
         let user_service = UserServiceMock::new();
 
-        let message_handler = MessageHandlerImpl {
-            database_connection: &database_connection,
-            message_router: Box::new(message_router),
-            currency_formatter: Box::new(currency_formatter),
-            user_service: Box::new(user_service),
-        };
+        let message_handler = MessageHandlerImpl::new(
+            &database_connection,
+            Box::new(message_router),
+            Box::new(currency_formatter),
+            Box::new(user_service),
+        );
 
         let responses = message_handler.handle_message(&message_mock());
         assert_eq!(
