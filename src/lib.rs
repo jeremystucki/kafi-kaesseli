@@ -7,42 +7,44 @@ extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
 
-use crate::models::Product;
+use crate::models::{Product, User};
 
-mod currency_formatter;
-mod currency_parser;
+mod currency_handling;
+
+mod message_handler;
 mod message_router;
 
 mod models;
 mod schema;
 
 mod data_loader;
-mod data_provider;
 
-mod product_data_source;
+mod services;
 
-#[derive(Debug, PartialEq)]
-struct Person {
-    id: usize,
-    name: String,
-}
+#[cfg(test)]
+mod test_utils;
 
 #[derive(Debug, PartialEq)]
-struct Message {
-    sender: Person,
+pub struct Message {
+    sender: User,
     contents: String,
 }
 
-type Rappen = i32;
+#[derive(Debug, PartialEq)]
+pub struct Response {
+    contents: String,
+}
+
+pub type Rappen = i32;
 
 #[derive(Debug, PartialEq)]
-enum Command {
+pub enum Command {
     GetCurrentStats,
     ListAvailableItems,
 }
 
 #[derive(Debug, PartialEq)]
-enum MessageAction {
+pub enum MessageAction {
     Amount(Rappen),
     Command(Command),
     Product(Product),
@@ -52,12 +54,14 @@ enum MessageAction {
 mod tests {
     use super::*;
     use currency_formatter::CurrencyFormatter;
+    use currency_handling::*;
     use currency_parser::CurrencyParser;
 
     fn format_and_parse(amount: Rappen) {
-        let formatted_amount = currency_formatter::CurrencyFormatterImpl {}.format_amount(amount);
+        let formatted_amount =
+            currency_formatter::CurrencyFormatterImpl::new().format_amount(amount);
 
-        let parser = currency_parser::CurrencyParserImpl {};
+        let parser = currency_parser::CurrencyParserImpl::new();
         let parsed_amount = parser.parse_text(&formatted_amount).unwrap();
 
         assert_eq!(amount, parsed_amount);
