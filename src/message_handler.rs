@@ -8,6 +8,7 @@ use crate::models::{Balance, Product, Transaction, User};
 use crate::schema::{balances, products, transactions, users};
 use crate::{Command, Message, MessageAction, Rappen, Response};
 
+use crate::services::user_service::UserService;
 use balances::dsl::balances as balances_dsl;
 use products::dsl::products as products_dsl;
 use transactions::dsl::transactions as transactions_dsl;
@@ -21,6 +22,7 @@ pub struct MessageHandlerImpl<'a> {
     database_connection: &'a SqliteConnection,
     message_router: Box<dyn MessageRouter>,
     currency_formatter: Box<dyn CurrencyFormatter>,
+    user_service: Box<dyn UserService>,
 }
 
 impl MessageHandlerImpl<'_> {
@@ -74,7 +76,7 @@ impl MessageHandlerImpl<'_> {
         product: Option<&Product>,
         sender: &User,
     ) -> Result<(), ()> {
-        self.update_user(sender)?;
+        self.user_service.update_user(sender)?;
 
         diesel::insert_into(transactions::table)
             .values(&Transaction {
@@ -83,25 +85,6 @@ impl MessageHandlerImpl<'_> {
                 user: sender.id.clone(),
                 product_name: product.map(|product| product.name.clone()),
             })
-            .execute(self.database_connection)
-            .map(|_| ())
-            .map_err(|_| ())
-    }
-
-    fn update_user(&self, sender: &User) -> Result<(), ()> {
-        let User { id, name } = sender;
-
-        match update(users_dsl.find(id))
-            .set(users::name.eq(name))
-            .execute(self.database_connection)
-        {
-            Ok(_) => return Ok(()),
-            Err(diesel::NotFound) => (),
-            Err(_) => return Err(()),
-        }
-
-        diesel::insert_into(users::table)
-            .values(sender)
             .execute(self.database_connection)
             .map(|_| ())
             .map_err(|_| ())
