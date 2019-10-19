@@ -10,6 +10,12 @@ pub trait DataProvider<T> {
 
 pub struct ProductDataProvider;
 
+impl ProductDataProvider {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
 impl DataProvider<Product> for ProductDataProvider {
     fn get_data(&self) -> Box<dyn Iterator<Item = Result<Product, ()>>> {
         unimplemented!()
