@@ -4,14 +4,14 @@ use crate::models::Rappen;
 use mockiato::mockable;
 
 #[cfg_attr(test, mockable)]
-pub(crate) trait CurrencyFormatter {
+pub trait CurrencyFormatter {
     fn format_amount(&self, amount: Rappen) -> String;
 }
 
-pub(crate) struct CurrencyFormatterImpl;
+pub struct CurrencyFormatterImpl;
 
 impl CurrencyFormatterImpl {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self {}
     }
 }

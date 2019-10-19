@@ -6,7 +6,7 @@ use crate::services::product_service::ProductService;
 use mockiato::mockable;
 
 #[cfg_attr(test, mockable)]
-pub(crate) trait MessageRouter {
+pub trait MessageRouter {
     fn route_message(&self, message: &Message) -> Result<Option<MessageAction>, ()>;
 }
 

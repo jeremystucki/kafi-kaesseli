@@ -15,14 +15,14 @@ use nom::sequence::tuple;
 use mockiato::mockable;
 
 #[cfg_attr(test, mockable)]
-pub(crate) trait CurrencyParser {
+pub trait CurrencyParser {
     fn parse_text(&self, text: &str) -> Result<Rappen, ()>;
 }
 
-pub(crate) struct CurrencyParserImpl;
+pub struct CurrencyParserImpl;
 
 impl CurrencyParserImpl {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self {}
     }
 }

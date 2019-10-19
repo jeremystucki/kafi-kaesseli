@@ -10,11 +10,11 @@ use products::dsl::products as products_dsl;
 use mockiato::mockable;
 
 #[cfg_attr(test, mockable)]
-pub(crate) trait ProductService {
+pub trait ProductService {
     fn get_product_with_identifier(&self, identifier: &str) -> Result<Option<Product>, ()>;
 }
 
-pub(crate) struct ProductServiceImpl<'a> {
+pub struct ProductServiceImpl<'a> {
     database_connection: &'a SqliteConnection,
 }
 

@@ -1,7 +1,7 @@
 use crate::schema::*;
 use chrono::{NaiveDate, NaiveDateTime};
 
-pub(crate) type Rappen = i32;
+pub type Rappen = i32;
 
 #[derive(Debug, PartialEq)]
 pub struct Message {
@@ -15,13 +15,13 @@ pub struct Response {
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum Command {
+pub enum Command {
     GetCurrentStats,
     ListAvailableItems,
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum MessageAction {
+pub enum MessageAction {
     Amount(Rappen),
     Command(Command),
     Product(Product),
