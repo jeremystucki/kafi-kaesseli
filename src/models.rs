@@ -32,7 +32,7 @@ pub(crate) enum MessageAction {
 pub struct Product {
     pub identifier: String,
     pub name: String,
-    pub price: i32,
+    pub price: Rappen,
 }
 
 impl PartialEq for Product {
