@@ -3,7 +3,7 @@ extern crate nom;
 use self::nom::bytes::complete::take_while_m_n;
 use self::nom::combinator::{not, peek};
 use self::nom::sequence::terminated;
-use crate::Rappen;
+use crate::models::Rappen;
 use nom::branch::alt;
 use nom::character::complete::{char as nom_char, digit1};
 use nom::character::is_digit;
@@ -15,14 +15,14 @@ use nom::sequence::tuple;
 use mockiato::mockable;
 
 #[cfg_attr(test, mockable)]
-pub trait CurrencyParser {
+pub(crate) trait CurrencyParser {
     fn parse_text(&self, text: &str) -> Result<Rappen, ()>;
 }
 
-pub struct CurrencyParserImpl;
+pub(crate) struct CurrencyParserImpl;
 
 impl CurrencyParserImpl {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {}
     }
 }

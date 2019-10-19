@@ -1,12 +1,38 @@
 use crate::schema::*;
 use chrono::{NaiveDate, NaiveDateTime};
 
+pub(crate) type Rappen = i32;
+
+#[derive(Debug, PartialEq)]
+pub struct Message {
+    pub sender: User,
+    pub contents: String,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Response {
+    pub contents: String,
+}
+
+#[derive(Debug, PartialEq)]
+pub(crate) enum Command {
+    GetCurrentStats,
+    ListAvailableItems,
+}
+
+#[derive(Debug, PartialEq)]
+pub(crate) enum MessageAction {
+    Amount(Rappen),
+    Command(Command),
+    Product(Product),
+}
+
 #[derive(Queryable, Insertable, Identifiable, Clone, Debug)]
 #[primary_key(identifier)]
 pub struct Product {
     pub identifier: String,
     pub name: String,
-    pub price: i32,
+    pub price: Rappen,
 }
 
 impl PartialEq for Product {
@@ -16,10 +42,10 @@ impl PartialEq for Product {
 }
 
 #[derive(Queryable, Clone, Debug)]
-pub struct Balance {
-    pub user_id: String,
-    pub name: String,
-    pub amount: i32,
+pub(crate) struct Balance {
+    pub(crate) user_id: String,
+    pub(crate) name: String,
+    pub(crate) amount: i32,
 }
 
 #[derive(Queryable, Insertable, Identifiable, Debug)]
@@ -35,9 +61,9 @@ impl PartialEq for User {
 }
 
 #[derive(Insertable, Debug)]
-pub struct Transaction {
-    pub amount: i32,
-    pub timestamp: NaiveDateTime,
-    pub user: String,
-    pub product_name: Option<String>,
+pub(crate) struct Transaction {
+    pub(crate) amount: i32,
+    pub(crate) timestamp: NaiveDateTime,
+    pub(crate) user: String,
+    pub(crate) product_name: Option<String>,
 }

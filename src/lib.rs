@@ -11,52 +11,25 @@ use crate::models::{Product, User};
 
 mod currency_handling;
 
-mod message_handler;
+pub mod message_handler;
 mod message_router;
 
 mod models;
 mod schema;
 
-mod data_loader;
+pub mod data_loader;
 
 mod services;
 
 #[cfg(test)]
 mod test_utils;
 
-#[derive(Debug, PartialEq)]
-pub struct Message {
-    sender: User,
-    contents: String,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Response {
-    contents: String,
-}
-
-pub type Rappen = i32;
-
-#[derive(Debug, PartialEq)]
-pub enum Command {
-    GetCurrentStats,
-    ListAvailableItems,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum MessageAction {
-    Amount(Rappen),
-    Command(Command),
-    Product(Product),
-}
-
-fn main() {
-    println!("Hello, world!");
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use crate::models::Rappen;
+
     use currency_formatter::CurrencyFormatter;
     use currency_handling::*;
     use currency_parser::CurrencyParser;

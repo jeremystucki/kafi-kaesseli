@@ -4,10 +4,11 @@ use diesel_migrations::name;
 
 use crate::currency_handling::currency_formatter::CurrencyFormatter;
 use crate::message_router::MessageRouter;
-use crate::models::{Balance, Product, Transaction, User};
+use crate::models::{
+    Balance, Command, Message, MessageAction, Product, Rappen, Response, Transaction, User,
+};
 use crate::schema::{balances, products, transactions, users};
 use crate::services::user_service::UserService;
-use crate::{Command, Message, MessageAction, Rappen, Response};
 
 use balances::dsl::balances as balances_dsl;
 use products::dsl::products as products_dsl;
@@ -26,7 +27,7 @@ pub struct MessageHandlerImpl<'a> {
 }
 
 impl<'a> MessageHandlerImpl<'a> {
-    pub fn new(
+    pub(crate) fn new(
         database_connection: &'a SqliteConnection,
         message_router: Box<dyn MessageRouter>,
         currency_formatter: Box<dyn CurrencyFormatter>,
@@ -203,7 +204,6 @@ mod tests {
     use crate::currency_handling::currency_formatter::CurrencyFormatterMock;
     use crate::message_router::MessageRouterMock;
     use crate::services::user_service::UserServiceMock;
-    use crate::{Command, MessageAction, Response, User};
     use diesel::Connection;
 
     fn message_mock() -> Message {

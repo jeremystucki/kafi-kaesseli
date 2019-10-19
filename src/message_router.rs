@@ -1,22 +1,22 @@
 use crate::currency_handling::currency_parser::CurrencyParser;
+use crate::models::{Command, Message, MessageAction, Product};
 use crate::services::product_service::ProductService;
-use crate::{Command, Message, MessageAction, Product};
 
 #[cfg(test)]
 use mockiato::mockable;
 
 #[cfg_attr(test, mockable)]
-pub trait MessageRouter {
+pub(crate) trait MessageRouter {
     fn route_message(&self, message: &Message) -> Result<Option<MessageAction>, ()>;
 }
 
-pub struct MessageRouterImpl {
+pub(crate) struct MessageRouterImpl {
     product_service: Box<dyn ProductService>,
     currency_parser: Box<dyn CurrencyParser>,
 }
 
 impl MessageRouterImpl {
-    pub fn new(
+    pub(crate) fn new(
         product_service: Box<dyn ProductService>,
         currency_parser: Box<dyn CurrencyParser>,
     ) -> Self {
