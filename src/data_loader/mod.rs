@@ -1,8 +1,11 @@
 use diesel::{RunQueryDsl, SqliteConnection};
 
-use crate::data_provider::DataProvider;
 use crate::models::Product;
 use crate::schema::products;
+
+use data_provider::*;
+
+mod data_provider;
 
 pub trait DataLoader {
     fn load_product_data(&self) -> Result<(), ()>;
@@ -53,15 +56,15 @@ mod tests {
     use diesel::Connection;
 
     use super::*;
-    use crate::data_provider::DataProviderMock;
+
     use crate::models::Product;
+    use crate::test_utils::*;
+
+    use data_provider::DataProviderMock;
 
     #[test]
     fn empties_product_table_before_insert() {
-        let database_connection = SqliteConnection::establish(":memory:").unwrap();
-
-        embed_migrations!("migrations");
-        embedded_migrations::run(&database_connection).unwrap();
+        let database_connection = setup_in_memory_database();
 
         let mut product_data_provider = DataProviderMock::<Product>::new();
         product_data_provider.expect_get_data_calls_in_order();
@@ -92,10 +95,8 @@ mod tests {
                 .map(Ok),
             ));
 
-        let data_loader = DataLoaderImpl {
-            database_connection: &database_connection,
-            product_data_provider: Box::new(product_data_provider),
-        };
+        let data_loader =
+            DataLoaderImpl::new(&database_connection, Box::new(product_data_provider));
 
         data_loader.load_product_data().unwrap();
         data_loader.load_product_data().unwrap();

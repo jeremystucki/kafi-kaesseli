@@ -21,6 +21,12 @@ pub trait CurrencyParser {
 
 pub struct CurrencyParserImpl;
 
+impl CurrencyParserImpl {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
 impl CurrencyParser for CurrencyParserImpl {
     fn parse_text(&self, text: &str) -> Result<Rappen, ()> {
         let separator = alt((nom_char('.'), nom_char(',')));
@@ -90,7 +96,7 @@ mod tests {
     use super::*;
 
     fn test_parser(input: &str, expected: Result<Rappen, ()>) {
-        let parser = CurrencyParserImpl {};
+        let parser = CurrencyParserImpl::new();
         let actual = parser.parse_text(input);
 
         assert_eq!(expected, actual);
