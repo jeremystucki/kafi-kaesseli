@@ -1,17 +1,5 @@
-[package]
-name = "kafi-kässeli"
-version = "0.1.0"
-authors = [
-    "Jeremy Stucki <jeremy@myelin.ch>",
-    "Stefanie Jäger <stefijaeger@gmail.com>",
+[workspace]
+members = [
+    "crates/core",
+    "crates/telegram",
 ]
-edition = "2018"
-
-[dependencies]
-nom = "5.0"
-diesel = { version = "1.4", features = ["sqlite", "chrono"] }
-diesel_migrations = "1.4"
-chrono = "0.4"
-
-[dev-dependencies]
-mockiato = "0.9"

@@ -1,0 +1,10 @@
+[package]
+name = "kafi-kaesseli-telegram"
+version = "0.1.0"
+authors = [
+    "Jeremy Stucki <jeremy@myelin.ch>"
+]
+edition = "2018"
+
+[dependencies]
+kafi-kaesseli-core = { path = "../core" }
