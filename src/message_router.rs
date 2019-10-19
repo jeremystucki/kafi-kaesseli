@@ -10,15 +10,15 @@ pub(crate) trait MessageRouter {
     fn route_message(&self, message: &Message) -> Result<Option<MessageAction>, ()>;
 }
 
-pub(crate) struct MessageRouterImpl {
-    product_service: Box<dyn ProductService>,
-    currency_parser: Box<dyn CurrencyParser>,
+pub struct MessageRouterImpl<'a> {
+    product_service: Box<dyn ProductService + 'a>,
+    currency_parser: Box<dyn CurrencyParser + 'a>,
 }
 
-impl MessageRouterImpl {
-    pub(crate) fn new(
-        product_service: Box<dyn ProductService>,
-        currency_parser: Box<dyn CurrencyParser>,
+impl<'a> MessageRouterImpl<'a> {
+    pub fn new(
+        product_service: Box<dyn ProductService + 'a>,
+        currency_parser: Box<dyn CurrencyParser + 'a>,
     ) -> Self {
         Self {
             product_service,
@@ -42,7 +42,7 @@ impl MessageRouterImpl {
     }
 }
 
-impl MessageRouter for MessageRouterImpl {
+impl<'a> MessageRouter for MessageRouterImpl<'a> {
     fn route_message(&self, message: &Message) -> Result<Option<MessageAction>, ()> {
         if let Some(command) = self.get_command(message) {
             return Ok(Some(MessageAction::Command(command)));
