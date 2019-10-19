@@ -1,5 +1,5 @@
 use diesel::SqliteConnection;
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
 
 use crate::models::Product;
 use crate::schema::products;
@@ -28,14 +28,11 @@ impl<'a> ProductServiceImpl<'a> {
 
 impl ProductService for ProductServiceImpl<'_> {
     fn get_product_with_identifier(&self, identifier: &str) -> Result<Option<Product>, ()> {
-        match products_dsl
+        products_dsl
             .find(identifier)
             .first::<Product>(self.database_connection)
-        {
-            Ok(product) => Ok(Some(product)),
-            Err(diesel::NotFound) => Ok(None),
-            Err(_) => Err(()),
-        }
+            .optional()
+            .map_err(|_| ())
     }
 }
 
