@@ -1,3 +1,5 @@
+use diesel::result::DatabaseErrorKind;
+use diesel::result::Error::DatabaseError;
 use diesel::SqliteConnection;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 
@@ -5,9 +7,6 @@ use crate::models::User;
 use crate::schema::users;
 
 use users::dsl::users as users_dsl;
-
-use diesel::result::DatabaseErrorKind;
-use diesel::result::Error::DatabaseError;
 
 #[cfg(test)]
 use mockiato::mockable;

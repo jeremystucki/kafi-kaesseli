@@ -6,9 +6,9 @@ use crate::currency_handling::currency_formatter::CurrencyFormatter;
 use crate::message_router::MessageRouter;
 use crate::models::{Balance, Product, Transaction, User};
 use crate::schema::{balances, products, transactions, users};
+use crate::services::user_service::UserService;
 use crate::{Command, Message, MessageAction, Rappen, Response};
 
-use crate::services::user_service::UserService;
 use balances::dsl::balances as balances_dsl;
 use products::dsl::products as products_dsl;
 use transactions::dsl::transactions as transactions_dsl;
@@ -29,45 +29,47 @@ impl MessageHandlerImpl<'_> {
     fn handle_message_action(&self, message_action: MessageAction, sender: &User) -> Vec<Response> {
         let confirmation = match message_action {
             MessageAction::Command(command) => return self.handle_command(command, sender),
-            MessageAction::Product(product) => {
-                let product_name = product.name.clone();
-
-                if self
-                    .register_transaction(-product.price, Some(&product), sender)
-                    .is_err()
-                {
+            MessageAction::Product(product) => match self.handle_product(&product, sender) {
+                Ok(response) => response,
+                Err(_) => {
                     return vec![Response {
                         contents: "Internal error (4)".to_string(),
-                    }];
+                    }]
                 }
-
-                Response {
-                    contents: format!("Recorded {}", product_name),
-                }
-            }
-            MessageAction::Amount(amount) => {
-                if self.register_transaction(amount, None, sender).is_err() {
+            },
+            MessageAction::Amount(amount) => match self.handle_amount(amount, sender) {
+                Ok(response) => response,
+                Err(_) => {
                     return vec![Response {
                         contents: "Internal error (5)".to_string(),
-                    }];
+                    }]
                 }
-
-                Response {
-                    contents: format!("Recorded {}", self.currency_formatter.format_amount(amount)),
-                }
-            }
+            },
         };
 
+        let mut responses = vec![confirmation];
+
         if let Ok(formatted_balances) = self.get_formatted_balances(&sender) {
-            vec![
-                confirmation,
-                Response {
-                    contents: formatted_balances,
-                },
-            ]
-        } else {
-            vec![confirmation]
+            responses.push(Response {
+                contents: formatted_balances,
+            });
         }
+
+        responses
+    }
+
+    fn handle_product(&self, product: &Product, sender: &User) -> Result<Response, ()> {
+        self.register_transaction(-product.price, Some(product), sender)
+            .map(|_| Response {
+                contents: format!("Recorded {}", product.name),
+            })
+    }
+
+    fn handle_amount(&self, amount: Rappen, sender: &User) -> Result<Response, ()> {
+        self.register_transaction(amount, None, sender)
+            .map(|_| Response {
+                contents: format!("Recorded {}", self.currency_formatter.format_amount(amount)),
+            })
     }
 
     fn register_transaction(
@@ -121,7 +123,9 @@ impl MessageHandlerImpl<'_> {
             .map(|product| {
                 format!(
                     "- /{} - {} ({})",
-                    product.identifier, product.name, product.price
+                    product.identifier,
+                    product.name,
+                    self.currency_formatter.format_amount(product.price)
                 )
             })
             .collect::<Vec<_>>()
