@@ -24,6 +24,8 @@ pub mod services;
 #[cfg(test)]
 mod test_utils;
 
+embed_migrations!("migrations");
+
 #[cfg(test)]
 mod tests {
     use super::*;

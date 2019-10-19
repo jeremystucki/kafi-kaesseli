@@ -186,6 +186,8 @@ impl<'a> MessageHandlerImpl<'a> {
 
 impl MessageHandler for MessageHandlerImpl<'_> {
     fn handle_message(&self, message: &Message) -> Vec<Response> {
+        crate::embedded_migrations::run(self.database_connection).unwrap();
+
         match self.message_router.route_message(message) {
             Err(_) => vec![Response {
                 contents: "Internal error (1)".to_string(),
