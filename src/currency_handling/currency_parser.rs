@@ -19,13 +19,8 @@ pub trait CurrencyParser {
     fn parse_text(&self, text: &str) -> Result<Rappen, ()>;
 }
 
+#[derive(Default)]
 pub struct CurrencyParserImpl;
-
-impl CurrencyParserImpl {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
 
 impl CurrencyParser for CurrencyParserImpl {
     fn parse_text(&self, text: &str) -> Result<Rappen, ()> {
@@ -96,7 +91,7 @@ mod tests {
     use super::*;
 
     fn test_parser(input: &str, expected: Result<Rappen, ()>) {
-        let parser = CurrencyParserImpl::new();
+        let parser = CurrencyParserImpl::default();
         let actual = parser.parse_text(input);
 
         assert_eq!(expected, actual);
