@@ -137,7 +137,7 @@ impl<'a> MessageHandlerImpl<'a> {
             .iter()
             .map(|product| {
                 format!(
-                    "- /{} - {} ({})",
+                    "/{} - {} ({})",
                     product.identifier,
                     product.name,
                     self.currency_formatter.format_amount(product.price)
@@ -166,7 +166,7 @@ impl<'a> MessageHandlerImpl<'a> {
             .into_iter()
             .map(|balance| {
                 let text = format!(
-                    "{} - {}",
+                    "- {} ({})",
                     balance.name,
                     self.currency_formatter.format_amount(balance.amount)
                 );
