@@ -1,9 +1,7 @@
 extern crate nom;
 
-use self::nom::bytes::complete::take_while_m_n;
-use self::nom::combinator::{not, peek};
-use self::nom::sequence::terminated;
-use crate::models::Rappen;
+#[cfg(test)]
+use mockiato::mockable;
 use nom::branch::alt;
 use nom::character::complete::{char as nom_char, digit1};
 use nom::character::is_digit;
@@ -11,8 +9,11 @@ use nom::combinator::{map, opt};
 use nom::multi::many0;
 use nom::sequence::tuple;
 
-#[cfg(test)]
-use mockiato::mockable;
+use crate::models::Rappen;
+
+use self::nom::bytes::complete::take_while_m_n;
+use self::nom::combinator::{not, peek};
+use self::nom::sequence::terminated;
 
 #[cfg_attr(test, mockable)]
 pub trait CurrencyParser {

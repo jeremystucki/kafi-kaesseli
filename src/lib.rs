@@ -3,9 +3,11 @@
 
 #[macro_use]
 extern crate diesel;
-
 #[macro_use]
 extern crate diesel_migrations;
+
+use diesel::sqlite::Sqlite;
+use diesel::SqliteConnection;
 
 use crate::models::{Product, User};
 
@@ -25,16 +27,19 @@ pub mod services;
 mod test_utils;
 
 embed_migrations!("migrations");
+pub fn run_migrations(database_connection: &SqliteConnection) -> Result<(), ()> {
+    embedded_migrations::run(database_connection).map_err(|_| ())
+}
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    use crate::models::Rappen;
-
     use currency_formatter::CurrencyFormatter;
     use currency_handling::*;
     use currency_parser::CurrencyParser;
+
+    use crate::models::Rappen;
+
+    use super::*;
 
     fn format_and_parse(amount: Rappen) {
         let formatted_amount =

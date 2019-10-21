@@ -1,9 +1,9 @@
 use diesel::{RunQueryDsl, SqliteConnection};
 
+use data_provider::*;
+
 use crate::models::Product;
 use crate::schema::products;
-
-use data_provider::*;
 
 pub mod data_provider;
 
@@ -55,12 +55,12 @@ impl DataLoader for DataLoaderImpl<'_> {
 mod tests {
     use diesel::Connection;
 
-    use super::*;
+    use data_provider::DataProviderMock;
 
     use crate::models::Product;
     use crate::test_utils::*;
 
-    use data_provider::DataProviderMock;
+    use super::*;
 
     #[test]
     fn empties_product_table_before_insert() {

@@ -1,9 +1,9 @@
+#[cfg(test)]
+use mockiato::mockable;
+
 use crate::currency_handling::currency_parser::CurrencyParser;
 use crate::models::{Command, Message, MessageAction, Product};
 use crate::services::product_service::ProductService;
-
-#[cfg(test)]
-use mockiato::mockable;
 
 #[cfg_attr(test, mockable)]
 pub trait MessageRouter {
@@ -62,10 +62,11 @@ impl<'a> MessageRouter for MessageRouterImpl<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::currency_handling::currency_parser::CurrencyParserMock;
     use crate::services::product_service::ProductServiceMock;
     use crate::User;
+
+    use super::*;
 
     #[test]
     fn unknown_message() {

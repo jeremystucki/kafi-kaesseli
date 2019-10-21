@@ -1,7 +1,7 @@
-use crate::models::Rappen;
-
 #[cfg(test)]
 use mockiato::mockable;
+
+use crate::models::Rappen;
 
 #[cfg_attr(test, mockable)]
 pub trait CurrencyFormatter {

@@ -1,5 +1,6 @@
-use crate::schema::*;
 use chrono::{NaiveDate, NaiveDateTime};
+
+use crate::schema::*;
 
 pub type Rappen = i32;
 
@@ -42,10 +43,10 @@ impl PartialEq for Product {
 }
 
 #[derive(Queryable, Clone, Debug)]
-pub(crate) struct Balance {
-    pub(crate) user_id: String,
-    pub(crate) name: String,
-    pub(crate) amount: i32,
+pub struct Balance {
+    pub user_id: String,
+    pub name: String,
+    pub amount: i32,
 }
 
 #[derive(Queryable, Insertable, Identifiable, Debug)]

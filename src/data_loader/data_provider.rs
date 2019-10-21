@@ -1,7 +1,7 @@
-use crate::models::Product;
-
 #[cfg(test)]
 use mockiato::mockable;
+
+use crate::models::Product;
 
 #[cfg_attr(test, mockable)]
 pub trait DataProvider<T> {
