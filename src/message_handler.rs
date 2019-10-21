@@ -171,8 +171,6 @@ impl MessageHandler for MessageHandlerImpl<'_> {
 
 #[cfg(test)]
 mod tests {
-    use diesel::Connection;
-
     use crate::currency_handling::currency_formatter::CurrencyFormatterMock;
     use crate::message_router::MessageRouterMock;
     use crate::services::balance_service::BalanceServiceMock;
@@ -193,32 +191,84 @@ mod tests {
     }
 
     #[test]
-    fn invalid_message() {
+    fn invalid_input() {
         let mut message_router = MessageRouterMock::new();
         message_router
             .expect_route_message(|arg| arg.any())
             .returns_once(Ok(None));
 
-        let currency_formatter = CurrencyFormatterMock::new();
+        let message_handler = MessageHandlerImpl::new(
+            Box::new(message_router),
+            Box::new(UserServiceMock::new()),
+            Box::new(ProductServiceMock::new()),
+            Box::new(TransactionServiceMock::new()),
+            Box::new(BalanceServiceMock::new()),
+            Box::new(CurrencyFormatterMock::new()),
+        );
 
-        let user_service = UserServiceMock::new();
-        let product_service = ProductServiceMock::new();
-        let transaction_service = TransactionServiceMock::new();
-        let balance_service = BalanceServiceMock::new();
+        let responses = message_handler.handle_message(&Message {
+            sender: User {
+                id: "some id".to_string(),
+                name: "foo".to_string(),
+            },
+            contents: "bar".to_string(),
+        });
+        assert_eq!(
+            vec![Response {
+                contents: "Invalid input".to_string()
+            }],
+            responses
+        );
+    }
+
+    #[test]
+    fn list_command() {
+        let mut message_router = MessageRouterMock::new();
+        message_router
+            .expect_route_message(|arg| arg.any())
+            .returns_once(Ok(Some(MessageAction::Command(
+                Command::ListAvailableItems,
+            ))));
+
+        let mut currency_formatter = CurrencyFormatterMock::new();
+        currency_formatter
+            .expect_format_amount(|arg| arg.partial_eq(420))
+            .returns_once("4.20".to_string());
+        currency_formatter
+            .expect_format_amount(|arg| arg.partial_eq(50))
+            .returns_once("0.50".to_string());
+
+        let mut product_service = ProductServiceMock::new();
+        product_service
+            .expect_get_available_products()
+            .returns_once(Ok(vec![
+                Product {
+                    identifier: "coke".to_string(),
+                    name: "a coke".to_string(),
+                    price: 420,
+                },
+                Product {
+                    identifier: "energy".to_string(),
+                    name: "energy drink".to_string(),
+                    price: 50,
+                },
+            ]));
 
         let message_handler = MessageHandlerImpl::new(
             Box::new(message_router),
-            Box::new(user_service),
+            Box::new(UserServiceMock::new()),
             Box::new(product_service),
-            Box::new(transaction_service),
-            Box::new(balance_service),
+            Box::new(TransactionServiceMock::new()),
+            Box::new(BalanceServiceMock::new()),
             Box::new(currency_formatter),
         );
 
         let responses = message_handler.handle_message(&message_mock());
         assert_eq!(
             vec![Response {
-                contents: "Invalid input".to_string()
+                contents:
+                    "Available products:\n/coke - a coke (4.20)\n/energy - energy drink (0.50)"
+                        .to_string()
             }],
             responses
         );
