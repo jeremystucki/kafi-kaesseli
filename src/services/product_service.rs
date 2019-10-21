@@ -1,16 +1,16 @@
 use diesel::SqliteConnection;
 use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
+#[cfg(test)]
+use mockiato::mockable;
+
+use products::dsl::products as products_dsl;
 
 use crate::models::Product;
 use crate::schema::products;
 
-use products::dsl::products as products_dsl;
-
-#[cfg(test)]
-use mockiato::mockable;
-
 #[cfg_attr(test, mockable)]
 pub trait ProductService {
+    fn get_available_products(&self) -> Result<Vec<Product>, ()>;
     fn get_product_with_identifier(&self, identifier: &str) -> Result<Option<Product>, ()>;
 }
 
@@ -27,6 +27,12 @@ impl<'a> ProductServiceImpl<'a> {
 }
 
 impl ProductService for ProductServiceImpl<'_> {
+    fn get_available_products(&self) -> Result<Vec<Product>, ()> {
+        products_dsl
+            .load::<Product>(self.database_connection)
+            .map_err(|_| ())
+    }
+
     fn get_product_with_identifier(&self, identifier: &str) -> Result<Option<Product>, ()> {
         products_dsl
             .find(identifier)
@@ -38,14 +44,15 @@ impl ProductService for ProductServiceImpl<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use diesel::Connection;
+
+    use products::dsl::products as products_dsl;
 
     use crate::models::Product;
     use crate::schema::products;
     use crate::test_utils::*;
 
-    use diesel::Connection;
-    use products::dsl::products as products_dsl;
+    use super::*;
 
     #[test]
     fn get_product_with_empty_database() {

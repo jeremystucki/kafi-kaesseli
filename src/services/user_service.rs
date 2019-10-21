@@ -2,14 +2,13 @@ use diesel::result::DatabaseErrorKind;
 use diesel::result::Error::DatabaseError;
 use diesel::SqliteConnection;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-
-use crate::models::User;
-use crate::schema::users;
+#[cfg(test)]
+use mockiato::mockable;
 
 use users::dsl::users as users_dsl;
 
-#[cfg(test)]
-use mockiato::mockable;
+use crate::models::User;
+use crate::schema::users;
 
 #[cfg_attr(test, mockable)]
 pub trait UserService {
@@ -51,14 +50,15 @@ impl UserService for UserServiceImpl<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use diesel::Connection;
+
+    use products::dsl::products as products_dsl;
 
     use crate::models::Product;
     use crate::schema::products;
     use crate::test_utils::*;
 
-    use diesel::Connection;
-    use products::dsl::products as products_dsl;
+    use super::*;
 
     #[test]
     fn insert_user() {
