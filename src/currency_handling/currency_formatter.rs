@@ -1,5 +1,5 @@
 #[cfg(test)]
-use mockall::{predicate::*, *};
+use mockall::automock;
 
 use crate::models::Rappen;
 
