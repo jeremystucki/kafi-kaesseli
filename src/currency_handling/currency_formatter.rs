@@ -1,9 +1,9 @@
 #[cfg(test)]
-use mockiato::mockable;
+use mockall::{predicate::*, *};
 
 use crate::models::Rappen;
 
-#[cfg_attr(test, mockable)]
+#[cfg_attr(test, automock)]
 pub trait CurrencyFormatter {
     fn format_amount(&self, amount: Rappen) -> String;
 }

@@ -171,7 +171,7 @@ impl MessageHandler for MessageHandlerImpl<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::currency_handling::currency_formatter::CurrencyFormatterMock;
+    use crate::currency_handling::currency_formatter::MockCurrencyFormatter;
     use crate::message_router::MessageRouterMock;
     use crate::services::balance_service::BalanceServiceMock;
     use crate::services::product_service::ProductServiceMock;
@@ -179,6 +179,7 @@ mod tests {
     use crate::services::user_service::UserServiceMock;
 
     use super::*;
+    use mockall::predicate::eq;
 
     fn message_mock() -> Message {
         Message {
@@ -203,7 +204,7 @@ mod tests {
             Box::new(ProductServiceMock::new()),
             Box::new(TransactionServiceMock::new()),
             Box::new(BalanceServiceMock::new()),
-            Box::new(CurrencyFormatterMock::new()),
+            Box::new(MockCurrencyFormatter::new()),
         );
 
         let responses = message_handler.handle_message(&Message {
@@ -230,13 +231,15 @@ mod tests {
                 Command::ListAvailableItems,
             ))));
 
-        let mut currency_formatter = CurrencyFormatterMock::new();
+        let mut currency_formatter = MockCurrencyFormatter::new();
         currency_formatter
-            .expect_format_amount(|arg| arg.partial_eq(420))
-            .returns_once("4.20".to_string());
+            .expect_format_amount()
+            .with(eq(420))
+            .return_once(|_| "4.20".to_string());
         currency_formatter
-            .expect_format_amount(|arg| arg.partial_eq(50))
-            .returns_once("0.50".to_string());
+            .expect_format_amount()
+            .with(eq(50))
+            .return_once(|_| "0.50".to_string());
 
         let mut product_service = ProductServiceMock::new();
         product_service
