@@ -62,11 +62,12 @@ impl<'a> MessageRouter for MessageRouterImpl<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::currency_handling::currency_parser::CurrencyParserMock;
+    use crate::currency_handling::currency_parser::MockCurrencyParser;
     use crate::services::product_service::ProductServiceMock;
     use crate::User;
 
     use super::*;
+    use mockall::predicate::eq;
 
     #[test]
     fn unknown_message() {
@@ -76,11 +77,12 @@ mod tests {
             .times(1)
             .returns(Ok(None));
 
-        let mut currency_parser = CurrencyParserMock::new();
+        let mut currency_parser = MockCurrencyParser::new();
         currency_parser
-            .expect_parse_text(|arg| arg.partial_eq("Foo"))
+            .expect_parse_text()
+            .with(eq("Foo"))
             .times(1)
-            .returns(Err(()));
+            .returning(|_| Err(()));
 
         let message = Message {
             sender: User {
@@ -100,7 +102,7 @@ mod tests {
     fn stats_command() {
         let product_service = ProductServiceMock::new();
 
-        let currency_parser = CurrencyParserMock::new();
+        let currency_parser = MockCurrencyParser::new();
 
         let message = Message {
             sender: User {
@@ -123,7 +125,7 @@ mod tests {
     fn list_available_items_command() {
         let product_service = ProductServiceMock::new();
 
-        let currency_parser = CurrencyParserMock::new();
+        let currency_parser = MockCurrencyParser::new();
 
         let message = Message {
             sender: User {
@@ -156,7 +158,7 @@ mod tests {
             .times(1)
             .returns(Ok(Some(product.clone())));
 
-        let currency_parser = CurrencyParserMock::new();
+        let currency_parser = MockCurrencyParser::new();
 
         let message = Message {
             sender: User {
@@ -186,7 +188,7 @@ mod tests {
             .times(1)
             .returns(Ok(Some(product.clone())));
 
-        let currency_parser = CurrencyParserMock::new();
+        let currency_parser = MockCurrencyParser::new();
 
         let message = Message {
             sender: User {
@@ -210,11 +212,12 @@ mod tests {
             .times(1)
             .returns(Ok(None));
 
-        let mut currency_parser = CurrencyParserMock::new();
+        let mut currency_parser = MockCurrencyParser::new();
         currency_parser
-            .expect_parse_text(|arg| arg.partial_eq("1.20"))
+            .expect_parse_text()
+            .with(eq("1.20"))
             .times(1)
-            .returns(Ok(120));
+            .returning(|_| Ok(120));
 
         let message = Message {
             sender: User {
@@ -238,7 +241,7 @@ mod tests {
             .times(1)
             .returns(Err(()));
 
-        let currency_parser = CurrencyParserMock::new();
+        let currency_parser = MockCurrencyParser::new();
 
         let message = Message {
             sender: User {

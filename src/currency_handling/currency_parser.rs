@@ -1,7 +1,7 @@
 extern crate nom;
 
 #[cfg(test)]
-use mockiato::mockable;
+use mockall::automock;
 use nom::branch::alt;
 use nom::character::complete::{char as nom_char, digit1};
 use nom::character::is_digit;
@@ -15,7 +15,7 @@ use self::nom::bytes::complete::take_while_m_n;
 use self::nom::combinator::{not, peek};
 use self::nom::sequence::terminated;
 
-#[cfg_attr(test, mockable)]
+#[cfg_attr(test, automock)]
 pub trait CurrencyParser {
     fn parse_text(&self, text: &str) -> Result<Rappen, ()>;
 }

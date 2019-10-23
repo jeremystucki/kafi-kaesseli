@@ -235,11 +235,13 @@ mod tests {
         currency_formatter
             .expect_format_amount()
             .with(eq(420))
-            .return_once(|_| "4.20".to_string());
+            .times(1)
+            .returning(|_| "4.20".to_string());
         currency_formatter
             .expect_format_amount()
             .with(eq(50))
-            .return_once(|_| "0.50".to_string());
+            .times(1)
+            .returning(|_| "0.50".to_string());
 
         let mut product_service = ProductServiceMock::new();
         product_service
