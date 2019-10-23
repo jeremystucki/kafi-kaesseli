@@ -173,10 +173,10 @@ impl MessageHandler for MessageHandlerImpl<'_> {
 mod tests {
     use crate::currency_handling::currency_formatter::MockCurrencyFormatter;
     use crate::message_router::MessageRouterMock;
-    use crate::services::balance_service::BalanceServiceMock;
-    use crate::services::product_service::ProductServiceMock;
-    use crate::services::transaction_service::TransactionServiceMock;
-    use crate::services::user_service::UserServiceMock;
+    use crate::services::balance_service::MockBalanceService;
+    use crate::services::product_service::MockProductService;
+    use crate::services::transaction_service::MockTransactionService;
+    use crate::services::user_service::MockUserService;
 
     use super::*;
     use mockall::predicate::eq;
@@ -200,10 +200,10 @@ mod tests {
 
         let message_handler = MessageHandlerImpl::new(
             Box::new(message_router),
-            Box::new(UserServiceMock::new()),
-            Box::new(ProductServiceMock::new()),
-            Box::new(TransactionServiceMock::new()),
-            Box::new(BalanceServiceMock::new()),
+            Box::new(MockUserService::new()),
+            Box::new(MockProductService::new()),
+            Box::new(MockTransactionService::new()),
+            Box::new(MockBalanceService::new()),
             Box::new(MockCurrencyFormatter::new()),
         );
 
@@ -243,28 +243,31 @@ mod tests {
             .times(1)
             .returning(|_| "0.50".to_string());
 
-        let mut product_service = ProductServiceMock::new();
+        let mut product_service = MockProductService::new();
         product_service
             .expect_get_available_products()
-            .returns_once(Ok(vec![
-                Product {
-                    identifier: "coke".to_string(),
-                    name: "a coke".to_string(),
-                    price: 420,
-                },
-                Product {
-                    identifier: "energy".to_string(),
-                    name: "energy drink".to_string(),
-                    price: 50,
-                },
-            ]));
+            .times(1)
+            .returning(|| {
+                Ok(vec![
+                    Product {
+                        identifier: "coke".to_string(),
+                        name: "a coke".to_string(),
+                        price: 420,
+                    },
+                    Product {
+                        identifier: "energy".to_string(),
+                        name: "energy drink".to_string(),
+                        price: 50,
+                    },
+                ])
+            });
 
         let message_handler = MessageHandlerImpl::new(
             Box::new(message_router),
-            Box::new(UserServiceMock::new()),
+            Box::new(MockUserService::new()),
             Box::new(product_service),
-            Box::new(TransactionServiceMock::new()),
-            Box::new(BalanceServiceMock::new()),
+            Box::new(MockTransactionService::new()),
+            Box::new(MockBalanceService::new()),
             Box::new(currency_formatter),
         );
 

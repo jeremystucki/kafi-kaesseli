@@ -63,7 +63,7 @@ impl<'a> MessageRouter for MessageRouterImpl<'a> {
 #[cfg(test)]
 mod tests {
     use crate::currency_handling::currency_parser::MockCurrencyParser;
-    use crate::services::product_service::ProductServiceMock;
+    use crate::services::product_service::MockProductService;
     use crate::User;
 
     use super::*;
@@ -71,11 +71,12 @@ mod tests {
 
     #[test]
     fn unknown_message() {
-        let mut product_service = ProductServiceMock::new();
+        let mut product_service = MockProductService::new();
         product_service
-            .expect_get_product_with_identifier(|arg| arg.partial_eq("Foo"))
+            .expect_get_product_with_identifier()
+            .with(eq("Foo"))
             .times(1)
-            .returns(Ok(None));
+            .returning(|_| Ok(None));
 
         let mut currency_parser = MockCurrencyParser::new();
         currency_parser
@@ -100,7 +101,7 @@ mod tests {
 
     #[test]
     fn stats_command() {
-        let product_service = ProductServiceMock::new();
+        let product_service = MockProductService::new();
 
         let currency_parser = MockCurrencyParser::new();
 
@@ -123,7 +124,7 @@ mod tests {
 
     #[test]
     fn list_available_items_command() {
-        let product_service = ProductServiceMock::new();
+        let product_service = MockProductService::new();
 
         let currency_parser = MockCurrencyParser::new();
 
@@ -152,11 +153,14 @@ mod tests {
             price: 60,
         };
 
-        let mut product_service = ProductServiceMock::new();
+        let product_clone = product.clone();
+
+        let mut product_service = MockProductService::new();
         product_service
-            .expect_get_product_with_identifier(|arg| arg.partial_eq("foo"))
+            .expect_get_product_with_identifier()
+            .with(eq("foo"))
             .times(1)
-            .returns(Ok(Some(product.clone())));
+            .return_once(move |_| Ok(Some(product_clone)));
 
         let currency_parser = MockCurrencyParser::new();
 
@@ -182,11 +186,14 @@ mod tests {
             price: 60,
         };
 
-        let mut product_service = ProductServiceMock::new();
+        let product_clone = product.clone();
+
+        let mut product_service = MockProductService::new();
         product_service
-            .expect_get_product_with_identifier(|arg| arg.partial_eq("foo"))
+            .expect_get_product_with_identifier()
+            .with(eq("foo"))
             .times(1)
-            .returns(Ok(Some(product.clone())));
+            .return_once(|_| Ok(Some(product_clone)));
 
         let currency_parser = MockCurrencyParser::new();
 
@@ -206,11 +213,12 @@ mod tests {
 
     #[test]
     fn amount() {
-        let mut product_service = ProductServiceMock::new();
+        let mut product_service = MockProductService::new();
         product_service
-            .expect_get_product_with_identifier(|arg| arg.partial_eq("1.20"))
+            .expect_get_product_with_identifier()
+            .with(eq("1.20"))
             .times(1)
-            .returns(Ok(None));
+            .returning(|_| Ok(None));
 
         let mut currency_parser = MockCurrencyParser::new();
         currency_parser
@@ -235,11 +243,12 @@ mod tests {
 
     #[test]
     fn error_in_product_service() {
-        let mut product_service = ProductServiceMock::new();
+        let mut product_service = MockProductService::new();
         product_service
-            .expect_get_product_with_identifier(|arg| arg.partial_eq("1.20"))
+            .expect_get_product_with_identifier()
+            .with(eq("1.20"))
             .times(1)
-            .returns(Err(()));
+            .returning(|_| Err(()));
 
         let currency_parser = MockCurrencyParser::new();
 

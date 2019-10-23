@@ -3,14 +3,14 @@ use diesel::result::Error::DatabaseError;
 use diesel::SqliteConnection;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 #[cfg(test)]
-use mockiato::mockable;
+use mockall::automock;
 
 use users::dsl::users as users_dsl;
 
 use crate::models::User;
 use crate::schema::users;
 
-#[cfg_attr(test, mockable)]
+#[cfg_attr(test, automock)]
 pub trait UserService {
     fn update_user(&self, user: &User) -> Result<(), ()>;
 }

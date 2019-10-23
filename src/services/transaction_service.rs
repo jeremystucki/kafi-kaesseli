@@ -4,7 +4,7 @@ use diesel::result::Error::DatabaseError;
 use diesel::SqliteConnection;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 #[cfg(test)]
-use mockiato::mockable;
+use mockall::automock;
 
 use transactions::dsl::transactions as transactions_dsl;
 
@@ -16,7 +16,7 @@ pub enum TransactionKind {
     Product(Product),
 }
 
-#[cfg_attr(test, mockable)]
+#[cfg_attr(test, automock)]
 pub trait TransactionService {
     fn register_transaction(
         &self,

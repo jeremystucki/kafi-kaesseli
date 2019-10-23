@@ -1,14 +1,14 @@
 use diesel::SqliteConnection;
 use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
 #[cfg(test)]
-use mockiato::mockable;
+use mockall::automock;
 
 use products::dsl::products as products_dsl;
 
 use crate::models::Product;
 use crate::schema::products;
 
-#[cfg_attr(test, mockable)]
+#[cfg_attr(test, automock)]
 pub trait ProductService {
     fn get_available_products(&self) -> Result<Vec<Product>, ()>;
     fn get_product_with_identifier(&self, identifier: &str) -> Result<Option<Product>, ()>;

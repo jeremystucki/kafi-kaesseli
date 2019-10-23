@@ -1,14 +1,14 @@
 use diesel::SqliteConnection;
 use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
 #[cfg(test)]
-use mockiato::mockable;
+use mockall::automock;
 
 use balances::dsl::balances as balances_dsl;
 
 use crate::models::Balance;
 use crate::schema::balances;
 
-#[cfg_attr(test, mockable)]
+#[cfg_attr(test, automock)]
 pub trait BalanceService {
     fn get_balances(&self) -> Result<Vec<Balance>, ()>;
 }
