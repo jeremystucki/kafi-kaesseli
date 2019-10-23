@@ -1,11 +1,11 @@
 #[cfg(test)]
-use mockiato::mockable;
+use mockall::automock;
 
 use crate::currency_handling::currency_parser::CurrencyParser;
 use crate::models::{Command, Message, MessageAction, Product};
 use crate::services::product_service::ProductService;
 
-#[cfg_attr(test, mockable)]
+#[cfg_attr(test, automock)]
 pub trait MessageRouter {
     fn route_message(&self, message: &Message) -> Result<Option<MessageAction>, ()>;
 }

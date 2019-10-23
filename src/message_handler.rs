@@ -172,7 +172,7 @@ impl MessageHandler for MessageHandlerImpl<'_> {
 #[cfg(test)]
 mod tests {
     use crate::currency_handling::currency_formatter::MockCurrencyFormatter;
-    use crate::message_router::MessageRouterMock;
+    use crate::message_router::MockMessageRouter;
     use crate::services::balance_service::MockBalanceService;
     use crate::services::product_service::MockProductService;
     use crate::services::transaction_service::MockTransactionService;
@@ -193,10 +193,11 @@ mod tests {
 
     #[test]
     fn invalid_input() {
-        let mut message_router = MessageRouterMock::new();
+        let mut message_router = MockMessageRouter::new();
         message_router
-            .expect_route_message(|arg| arg.any())
-            .returns_once(Ok(None));
+            .expect_route_message()
+            .times(1)
+            .returning(|_| Ok(None));
 
         let message_handler = MessageHandlerImpl::new(
             Box::new(message_router),
@@ -224,12 +225,10 @@ mod tests {
 
     #[test]
     fn list_command() {
-        let mut message_router = MessageRouterMock::new();
+        let mut message_router = MockMessageRouter::new();
         message_router
-            .expect_route_message(|arg| arg.any())
-            .returns_once(Ok(Some(MessageAction::Command(
-                Command::ListAvailableItems,
-            ))));
+            .expect_route_message()
+            .returning(|_| Ok(Some(MessageAction::Command(Command::ListAvailableItems))));
 
         let mut currency_formatter = MockCurrencyFormatter::new();
         currency_formatter
