@@ -9,7 +9,7 @@ use crate::models::Product;
 use crate::schema::products;
 
 #[cfg_attr(test, automock)]
-pub trait ProductService {
+pub trait ProductService: Send {
     fn get_available_products(&self) -> Result<Vec<Product>, ()>;
     fn get_product_with_identifier(&self, identifier: &str) -> Result<Option<Product>, ()>;
 }

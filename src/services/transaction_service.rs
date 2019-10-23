@@ -17,7 +17,7 @@ pub enum TransactionKind {
 }
 
 #[cfg_attr(test, automock)]
-pub trait TransactionService {
+pub trait TransactionService: Send {
     fn register_transaction(
         &self,
         transaction_kind: TransactionKind,

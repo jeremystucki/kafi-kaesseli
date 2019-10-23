@@ -9,7 +9,7 @@ use crate::models::Balance;
 use crate::schema::balances;
 
 #[cfg_attr(test, automock)]
-pub trait BalanceService {
+pub trait BalanceService: Send {
     fn get_balances(&self) -> Result<Vec<Balance>, ()>;
 }
 

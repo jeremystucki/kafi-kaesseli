@@ -6,7 +6,7 @@ use crate::models::{Command, Message, MessageAction, Product};
 use crate::services::product_service::ProductService;
 
 #[cfg_attr(test, automock)]
-pub trait MessageRouter {
+pub trait MessageRouter: Send {
     fn route_message(&self, message: &Message) -> Result<Option<MessageAction>, ()>;
 }
 

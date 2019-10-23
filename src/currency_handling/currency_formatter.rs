@@ -4,7 +4,7 @@ use mockall::automock;
 use crate::models::Rappen;
 
 #[cfg_attr(test, automock)]
-pub trait CurrencyFormatter {
+pub trait CurrencyFormatter: Send {
     fn format_amount(&self, amount: Rappen) -> String;
 }
 

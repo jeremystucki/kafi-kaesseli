@@ -18,7 +18,7 @@ use crate::services::product_service::ProductService;
 use crate::services::transaction_service::{TransactionKind, TransactionService};
 use crate::services::user_service::UserService;
 
-pub trait MessageHandler {
+pub trait MessageHandler: Send {
     fn handle_message(&self, message: &Message) -> Vec<Response>;
 }
 

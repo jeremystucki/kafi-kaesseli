@@ -11,7 +11,7 @@ use crate::models::User;
 use crate::schema::users;
 
 #[cfg_attr(test, automock)]
-pub trait UserService {
+pub trait UserService: Send {
     fn update_user(&self, user: &User) -> Result<(), ()>;
 }
 
