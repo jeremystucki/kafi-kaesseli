@@ -7,17 +7,17 @@ use crate::schema::products;
 
 pub mod data_provider;
 
-pub(crate) trait DataLoader {
+pub trait DataLoader {
     fn load_product_data(&self) -> Result<(), ()>;
 }
 
-pub(crate) struct DataLoaderImpl<'a> {
+pub struct DataLoaderImpl<'a> {
     database_connection: &'a SqliteConnection,
     product_data_provider: Box<dyn DataProvider<Product>>,
 }
 
 impl<'a> DataLoaderImpl<'a> {
-    pub(crate) fn new(
+    pub fn new(
         database_connection: &'a SqliteConnection,
         product_data_provider: Box<dyn DataProvider<Product>>,
     ) -> DataLoaderImpl<'a> {
