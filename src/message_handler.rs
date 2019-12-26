@@ -13,10 +13,23 @@ use crate::models::{
     Balance, Command, Message, MessageAction, Product, Rappen, Response, Transaction, User,
 };
 use crate::schema::{balances, products, transactions, users};
+use crate::services::balance_service;
 use crate::services::balance_service::BalanceService;
+use crate::services::product_service;
 use crate::services::product_service::ProductService;
+use crate::services::transaction_service;
 use crate::services::transaction_service::{TransactionKind, TransactionService};
+use crate::services::user_service;
 use crate::services::user_service::UserService;
+
+error_chain! {
+    links {
+        BalanceService(balance_service::Error, balance_service::ErrorKind);
+        ProductService(product_service::Error, product_service::ErrorKind);
+        TransactionService(transaction_service::Error, transaction_service::ErrorKind);
+        UserService(user_service::Error, user_service::ErrorKind);
+    }
+}
 
 pub trait MessageHandler {
     fn handle_message(&self, message: &Message) -> Vec<Response>;
@@ -54,7 +67,7 @@ impl<'a> MessageHandlerImpl<'a> {
         &self,
         message_action: MessageAction,
         sender: &User,
-    ) -> Result<Vec<Response>, ()> {
+    ) -> Result<Vec<Response>> {
         let transaction_kind = match message_action {
             MessageAction::Command(command) => return self.handle_command(command, sender),
             MessageAction::Product(product) => TransactionKind::Product(product),
@@ -69,9 +82,12 @@ impl<'a> MessageHandlerImpl<'a> {
             TransactionKind::Product(Product { name, .. }) => format!("Recorded {}", name),
         };
 
-        self.user_service.update_user(sender)?;
+        self.user_service
+            .update_user(sender)
+            .map_err(|e| ErrorKind::UserService(e.0))?; // TODO
         self.transaction_service
-            .register_transaction(transaction_kind, sender)?;
+            .register_transaction(transaction_kind, sender)
+            .map_err(|e| ErrorKind::TransactionService(e.0))?; // TODO
 
         let mut responses = vec![Response {
             contents: success_message,
@@ -86,7 +102,7 @@ impl<'a> MessageHandlerImpl<'a> {
         Ok(responses)
     }
 
-    fn handle_command(&self, command: Command, sender: &User) -> Result<Vec<Response>, ()> {
+    fn handle_command(&self, command: Command, sender: &User) -> Result<Vec<Response>> {
         let contents = match command {
             Command::ListAvailableItems => self.get_formatted_available_products()?,
             Command::GetCurrentStats => self.get_formatted_balances(sender)?,
@@ -95,10 +111,11 @@ impl<'a> MessageHandlerImpl<'a> {
         Ok(vec![Response { contents }])
     }
 
-    fn get_formatted_available_products(&self) -> Result<String, ()> {
+    fn get_formatted_available_products(&self) -> Result<String> {
         self.product_service
             .get_available_products()
             .map(|products| self.format_products(&products))
+            .map_err(Into::into)
     }
 
     fn format_products(&self, products: &[Product]) -> String {
@@ -119,10 +136,11 @@ impl<'a> MessageHandlerImpl<'a> {
         format!("{}\n{}", message_header, message_body)
     }
 
-    fn get_formatted_balances(&self, sender: &User) -> Result<String, ()> {
+    fn get_formatted_balances(&self, sender: &User) -> Result<String> {
         self.balance_service
             .get_balances()
             .map(|balances| self.format_balances(balances, sender))
+            .map_err(Into::into)
     }
 
     fn format_balances(&self, balances: Vec<Balance>, sender: &User) -> String {
@@ -160,9 +178,9 @@ impl MessageHandler for MessageHandlerImpl<'_> {
             }],
             Ok(Some(message_action)) => self
                 .handle_message_action(message_action, &message.sender)
-                .unwrap_or_else(|_| {
+                .unwrap_or_else(|error| {
                     vec![Response {
-                        contents: "Internal error (4)".to_string(),
+                        contents: format!("{:?}", error),
                     }]
                 }),
         }

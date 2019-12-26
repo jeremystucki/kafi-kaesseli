@@ -29,6 +29,7 @@ impl<'a> DataLoaderImpl<'a> {
 }
 
 impl DataLoader for DataLoaderImpl<'_> {
+    // TODO: Never used, figure out what I meant to do
     fn load_product_data(&self) -> Result<(), ()> {
         diesel::delete(products::table)
             .execute(self.database_connection)
@@ -71,7 +72,6 @@ mod tests {
 
         product_data_provider
             .expect_get_data()
-            .times(1)
             .returns_once(Box::new(
                 vec![Product {
                     identifier: "foo".to_string(),
@@ -84,7 +84,6 @@ mod tests {
 
         product_data_provider
             .expect_get_data()
-            .times(1)
             .returns_once(Box::new(
                 vec![Product {
                     identifier: "bar".to_string(),

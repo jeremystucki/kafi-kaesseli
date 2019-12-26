@@ -10,9 +10,13 @@ use users::dsl::users as users_dsl;
 use crate::models::User;
 use crate::schema::users;
 
+error_chain! {
+    errors { DatabaseError }
+}
+
 #[cfg_attr(test, mockable)]
 pub trait UserService {
-    fn update_user(&self, user: &User) -> Result<(), ()>;
+    fn update_user(&self, user: &User) -> Result<()>;
 }
 
 pub struct UserServiceImpl<'a> {
@@ -28,7 +32,7 @@ impl<'a> UserServiceImpl<'a> {
 }
 
 impl UserService for UserServiceImpl<'_> {
-    fn update_user(&self, user: &User) -> Result<(), ()> {
+    fn update_user(&self, user: &User) -> Result<()> {
         let User { id, name } = user;
 
         match diesel::update(users_dsl.find(id))
@@ -37,14 +41,14 @@ impl UserService for UserServiceImpl<'_> {
         {
             Ok(0) => (),
             Ok(_) => return Ok(()),
-            Err(_) => return Err(()),
+            Err(_) => bail!(ErrorKind::DatabaseError),
         }
 
         diesel::insert_into(users::table)
             .values(user)
             .execute(self.database_connection)
             .map(|_| ())
-            .map_err(|_| ())
+            .chain_err(|| ErrorKind::DatabaseError)
     }
 }
 

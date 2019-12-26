@@ -8,9 +8,13 @@ use balances::dsl::balances as balances_dsl;
 use crate::models::Balance;
 use crate::schema::balances;
 
+error_chain! {
+    errors { DatabaseError }
+}
+
 #[cfg_attr(test, mockable)]
 pub trait BalanceService {
-    fn get_balances(&self) -> Result<Vec<Balance>, ()>;
+    fn get_balances(&self) -> Result<Vec<Balance>>;
 }
 
 pub struct BalanceServiceImpl<'a> {
@@ -26,10 +30,10 @@ impl<'a> BalanceServiceImpl<'a> {
 }
 
 impl BalanceService for BalanceServiceImpl<'_> {
-    fn get_balances(&self) -> Result<Vec<Balance>, ()> {
+    fn get_balances(&self) -> Result<Vec<Balance>> {
         balances_dsl
             .load::<Balance>(self.database_connection)
-            .map_err(|_| ())
+            .chain_err(|| ErrorKind::DatabaseError)
     }
 }
 

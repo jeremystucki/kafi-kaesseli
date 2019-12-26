@@ -11,6 +11,10 @@ use transactions::dsl::transactions as transactions_dsl;
 use crate::models::{Product, Rappen, Transaction, User};
 use crate::schema::transactions;
 
+error_chain! {
+    errors { DatabaseError }
+}
+
 pub enum TransactionKind {
     Amount(Rappen),
     Product(Product),
@@ -18,11 +22,7 @@ pub enum TransactionKind {
 
 #[cfg_attr(test, mockable)]
 pub trait TransactionService {
-    fn register_transaction(
-        &self,
-        transaction_kind: TransactionKind,
-        sender: &User,
-    ) -> Result<(), ()>;
+    fn register_transaction(&self, transaction_kind: TransactionKind, sender: &User) -> Result<()>;
 }
 
 pub struct TransactionServiceImpl<'a> {
@@ -38,11 +38,7 @@ impl<'a> TransactionServiceImpl<'a> {
 }
 
 impl TransactionService for TransactionServiceImpl<'_> {
-    fn register_transaction(
-        &self,
-        transaction_kind: TransactionKind,
-        sender: &User,
-    ) -> Result<(), ()> {
+    fn register_transaction(&self, transaction_kind: TransactionKind, sender: &User) -> Result<()> {
         let (amount, product_name) = match transaction_kind {
             TransactionKind::Amount(amount) => (amount, None),
             TransactionKind::Product(Product { price, name, .. }) => (-price, Some(name)),
@@ -57,7 +53,7 @@ impl TransactionService for TransactionServiceImpl<'_> {
             })
             .execute(self.database_connection)
             .map(|_| ())
-            .map_err(|_| ())
+            .chain_err(|| ErrorKind::DatabaseError)
     }
 }
 

@@ -3,11 +3,18 @@ use mockiato::mockable;
 
 use crate::currency_handling::currency_parser::CurrencyParser;
 use crate::models::{Command, Message, MessageAction, Product};
+use crate::services::product_service;
 use crate::services::product_service::ProductService;
+
+error_chain! {
+    links {
+        ProductService(product_service::Error, product_service::ErrorKind);
+    }
+}
 
 #[cfg_attr(test, mockable)]
 pub trait MessageRouter {
-    fn route_message(&self, message: &Message) -> Result<Option<MessageAction>, ()>;
+    fn route_message(&self, message: &Message) -> Result<Option<MessageAction>>;
 }
 
 pub struct MessageRouterImpl<'a> {
@@ -34,16 +41,17 @@ impl<'a> MessageRouterImpl<'a> {
         }
     }
 
-    fn get_product(&self, message: &Message) -> Result<Option<Product>, ()> {
+    fn get_product(&self, message: &Message) -> Result<Option<Product>> {
         let product_identifier = message.contents.trim_start_matches('/');
 
         self.product_service
             .get_product_with_identifier(product_identifier)
+            .map_err(|err| err.into())
     }
 }
 
 impl<'a> MessageRouter for MessageRouterImpl<'a> {
-    fn route_message(&self, message: &Message) -> Result<Option<MessageAction>, ()> {
+    fn route_message(&self, message: &Message) -> Result<Option<MessageAction>> {
         if let Some(command) = self.get_command(message) {
             return Ok(Some(MessageAction::Command(command)));
         }
@@ -62,6 +70,7 @@ impl<'a> MessageRouter for MessageRouterImpl<'a> {
 
 #[cfg(test)]
 mod tests {
+    use crate::currency_handling::currency_parser;
     use crate::currency_handling::currency_parser::CurrencyParserMock;
     use crate::services::product_service::ProductServiceMock;
     use crate::User;
@@ -73,14 +82,12 @@ mod tests {
         let mut product_service = ProductServiceMock::new();
         product_service
             .expect_get_product_with_identifier(|arg| arg.partial_eq("Foo"))
-            .times(1)
-            .returns(Ok(None));
+            .returns_once(Ok(None));
 
         let mut currency_parser = CurrencyParserMock::new();
         currency_parser
             .expect_parse_text(|arg| arg.partial_eq("Foo"))
-            .times(1)
-            .returns(Err(()));
+            .returns_once(Err(currency_parser::ErrorKind::InvalidInput.into()));
 
         let message = Message {
             sender: User {
@@ -153,8 +160,7 @@ mod tests {
         let mut product_service = ProductServiceMock::new();
         product_service
             .expect_get_product_with_identifier(|arg| arg.partial_eq("foo"))
-            .times(1)
-            .returns(Ok(Some(product.clone())));
+            .returns_once(Ok(Some(product.clone())));
 
         let currency_parser = CurrencyParserMock::new();
 
@@ -183,8 +189,7 @@ mod tests {
         let mut product_service = ProductServiceMock::new();
         product_service
             .expect_get_product_with_identifier(|arg| arg.partial_eq("foo"))
-            .times(1)
-            .returns(Ok(Some(product.clone())));
+            .returns_once(Ok(Some(product.clone())));
 
         let currency_parser = CurrencyParserMock::new();
 
@@ -207,14 +212,12 @@ mod tests {
         let mut product_service = ProductServiceMock::new();
         product_service
             .expect_get_product_with_identifier(|arg| arg.partial_eq("1.20"))
-            .times(1)
-            .returns(Ok(None));
+            .returns_once(Ok(None));
 
         let mut currency_parser = CurrencyParserMock::new();
         currency_parser
             .expect_parse_text(|arg| arg.partial_eq("1.20"))
-            .times(1)
-            .returns(Ok(120));
+            .returns_once(Ok(120));
 
         let message = Message {
             sender: User {
@@ -235,8 +238,7 @@ mod tests {
         let mut product_service = ProductServiceMock::new();
         product_service
             .expect_get_product_with_identifier(|arg| arg.partial_eq("1.20"))
-            .times(1)
-            .returns(Err(()));
+            .returns_once(Err(product_service::ErrorKind::DatabaseError.into()));
 
         let currency_parser = CurrencyParserMock::new();
 

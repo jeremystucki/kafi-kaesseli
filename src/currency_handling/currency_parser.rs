@@ -15,16 +15,20 @@ use self::nom::bytes::complete::take_while_m_n;
 use self::nom::combinator::{not, peek};
 use self::nom::sequence::terminated;
 
+error_chain! {
+    errors { InvalidInput }
+}
+
 #[cfg_attr(test, mockable)]
 pub trait CurrencyParser {
-    fn parse_text(&self, text: &str) -> Result<Rappen, ()>;
+    fn parse_text(&self, text: &str) -> Result<Rappen>;
 }
 
 #[derive(Default)]
 pub struct CurrencyParserImpl;
 
 impl CurrencyParser for CurrencyParserImpl {
-    fn parse_text(&self, text: &str) -> Result<Rappen, ()> {
+    fn parse_text(&self, text: &str) -> Result<Rappen> {
         let separator = alt((nom_char('.'), nom_char(',')));
 
         let sign = map(
@@ -66,10 +70,10 @@ impl CurrencyParser for CurrencyParserImpl {
             )),
         ));
 
-        let (remaining_text, parsed_data) = parser(&text).map_err(|_| ())?;
+        let (remaining_text, parsed_data) = parser(&text).map_err(|_| ErrorKind::InvalidInput)?;
 
         if !remaining_text.is_empty() {
-            return Err(());
+            bail!(ErrorKind::InvalidInput);
         }
 
         let (is_positive, (franken_amount, rappen_amount)) = parsed_data;
@@ -91,11 +95,15 @@ fn is_char_digit(chr: char) -> bool {
 mod tests {
     use super::*;
 
-    fn test_parser(input: &str, expected: Result<Rappen, ()>) {
+    fn test_parser(input: &str, expected: Result<Rappen>) {
         let parser = CurrencyParserImpl::default();
         let actual = parser.parse_text(input);
 
-        assert_eq!(expected, actual);
+        match (expected, actual) {
+            (Ok(expected), Ok(actual)) => assert_eq!(expected, actual),
+            (Err(Error(ErrorKind::InvalidInput, _)), Err(Error(ErrorKind::InvalidInput, _))) => {}
+            _ => panic!(),
+        }
     }
 
     #[test]
@@ -130,7 +138,7 @@ mod tests {
 
     #[test]
     fn invalid_rappen_amount() {
-        test_parser("2.005", Err(()))
+        test_parser("2.005", Err(ErrorKind::InvalidInput.into()))
     }
 
     #[test]

@@ -14,14 +14,14 @@ pub struct CurrencyFormatterImpl;
 impl CurrencyFormatter for CurrencyFormatterImpl {
     fn format_amount(&self, amount: Rappen) -> String {
         let prefix = if amount >= 0 { "" } else { "- " };
-        let formatted_franken = format_whole_franken_amount(amount);
+        let formatted_franken = format_franken_amount(amount);
         let formatted_rappen = format_rappen_amount(amount);
 
         format!("{}{}.{}", prefix, formatted_franken, formatted_rappen)
     }
 }
 
-fn format_whole_franken_amount(amount: Rappen) -> String {
+fn format_franken_amount(amount: Rappen) -> String {
     let franken_amount = amount.abs() / 100;
 
     // Only return "-" if the rappen amount is not zero

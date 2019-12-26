@@ -8,10 +8,14 @@ use products::dsl::products as products_dsl;
 use crate::models::Product;
 use crate::schema::products;
 
+error_chain! {
+    errors { DatabaseError }
+}
+
 #[cfg_attr(test, mockable)]
 pub trait ProductService {
-    fn get_available_products(&self) -> Result<Vec<Product>, ()>;
-    fn get_product_with_identifier(&self, identifier: &str) -> Result<Option<Product>, ()>;
+    fn get_available_products(&self) -> Result<Vec<Product>>;
+    fn get_product_with_identifier(&self, identifier: &str) -> Result<Option<Product>>;
 }
 
 pub struct ProductServiceImpl<'a> {
@@ -27,18 +31,18 @@ impl<'a> ProductServiceImpl<'a> {
 }
 
 impl ProductService for ProductServiceImpl<'_> {
-    fn get_available_products(&self) -> Result<Vec<Product>, ()> {
+    fn get_available_products(&self) -> Result<Vec<Product>> {
         products_dsl
             .load::<Product>(self.database_connection)
-            .map_err(|_| ())
+            .chain_err(|| ErrorKind::DatabaseError)
     }
 
-    fn get_product_with_identifier(&self, identifier: &str) -> Result<Option<Product>, ()> {
+    fn get_product_with_identifier(&self, identifier: &str) -> Result<Option<Product>> {
         products_dsl
             .find(identifier)
             .first::<Product>(self.database_connection)
             .optional()
-            .map_err(|_| ())
+            .chain_err(|| ErrorKind::DatabaseError)
     }
 }
 
@@ -61,7 +65,7 @@ mod tests {
         let product_service = ProductServiceImpl::new(&database_connection);
 
         let result = product_service.get_product_with_identifier("foo");
-        assert_eq!(Ok(None), result);
+        assert!(result.unwrap().is_none());
     }
 
     #[test]
@@ -81,6 +85,6 @@ mod tests {
         let product_service = ProductServiceImpl::new(&database_connection);
 
         let result = product_service.get_product_with_identifier("foo");
-        assert_eq!(Ok(Some(product)), result);
+        assert_eq!(Some(product), result.unwrap());
     }
 }
