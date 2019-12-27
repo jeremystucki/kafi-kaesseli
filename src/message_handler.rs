@@ -8,6 +8,7 @@ use transactions::dsl::transactions as transactions_dsl;
 use users::dsl::users as users_dsl;
 
 use crate::currency_handling::currency_formatter::CurrencyFormatter;
+use crate::error_chain::ChainedError;
 use crate::message_router::MessageRouter;
 use crate::models::{
     Balance, Command, Message, MessageAction, Product, Rappen, Response, Transaction, User,
@@ -89,14 +90,10 @@ impl<'a> MessageHandlerImpl<'a> {
             .register_transaction(transaction_kind, sender)
             .map_err(|e| ErrorKind::TransactionService(e.0))?; // TODO
 
-        let mut responses = vec![Response {
-            contents: success_message,
-        }];
+        let mut responses = vec![Response::Markdown(success_message)];
 
         if let Ok(formatted_balances) = self.get_formatted_balances(&sender) {
-            responses.push(Response {
-                contents: formatted_balances,
-            });
+            responses.push(Response::Markdown(formatted_balances));
         }
 
         Ok(responses)
@@ -108,7 +105,7 @@ impl<'a> MessageHandlerImpl<'a> {
             Command::GetCurrentStats => self.get_formatted_balances(sender)?,
         };
 
-        Ok(vec![Response { contents }])
+        Ok(vec![Response::Markdown(contents)])
     }
 
     fn get_formatted_available_products(&self) -> Result<String> {
@@ -170,19 +167,17 @@ impl<'a> MessageHandlerImpl<'a> {
 impl MessageHandler for MessageHandlerImpl<'_> {
     fn handle_message(&self, message: &Message) -> Vec<Response> {
         match self.message_router.route_message(message) {
-            Err(_) => vec![Response {
-                contents: "Internal error (1)".to_string(),
-            }],
-            Ok(None) => vec![Response {
-                contents: "Invalid input".to_string(),
-            }],
+            Err(error) => vec![
+                Response::Markdown("Internal error".to_string()),
+                Response::File {
+                    filename: "error.txt".to_string(),
+                    contents: format!("{}", error.display_chain()).into_bytes(),
+                },
+            ],
+            Ok(None) => vec![Response::Markdown("Invalid input".to_string())],
             Ok(Some(message_action)) => self
                 .handle_message_action(message_action, &message.sender)
-                .unwrap_or_else(|error| {
-                    vec![Response {
-                        contents: format!("{:?}", error),
-                    }]
-                }),
+                .unwrap_or_else(|error| vec![Response::Markdown(format!("{:?}", error))]),
         }
     }
 }
@@ -224,17 +219,9 @@ mod tests {
             Box::new(CurrencyFormatterMock::new()),
         );
 
-        let responses = message_handler.handle_message(&Message {
-            sender: User {
-                id: "some id".to_string(),
-                name: "foo".to_string(),
-            },
-            contents: "bar".to_string(),
-        });
+        let responses = message_handler.handle_message(&message_mock());
         assert_eq!(
-            vec![Response {
-                contents: "Invalid input".to_string()
-            }],
+            vec![Response::Markdown("Invalid input".to_string())],
             responses
         );
     }
@@ -283,11 +270,10 @@ mod tests {
 
         let responses = message_handler.handle_message(&message_mock());
         assert_eq!(
-            vec![Response {
-                contents:
-                    "Available products:\n/coke - a coke (4.20)\n/energy - energy drink (0.50)"
-                        .to_string()
-            }],
+            vec![Response::Markdown(
+                "Available products:\n/coke - a coke (4.20)\n/energy - energy drink (0.50)"
+                    .to_string()
+            )],
             responses
         );
     }

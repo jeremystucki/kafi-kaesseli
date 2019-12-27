@@ -11,8 +11,9 @@ pub struct Message {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Response {
-    pub contents: String,
+pub enum Response {
+    Markdown(String),
+    File { filename: String, contents: Vec<u8> },
 }
 
 #[derive(Debug, PartialEq)]

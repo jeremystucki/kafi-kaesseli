@@ -29,7 +29,6 @@ impl<'a> DataLoaderImpl<'a> {
 }
 
 impl DataLoader for DataLoaderImpl<'_> {
-    // TODO: Never used, figure out what I meant to do
     fn load_product_data(&self) -> Result<(), ()> {
         diesel::delete(products::table)
             .execute(self.database_connection)
