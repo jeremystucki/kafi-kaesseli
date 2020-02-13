@@ -72,7 +72,7 @@ mod tests {
     fn unknown_message() {
         let mut product_service = ProductServiceMock::new();
         product_service
-            .expect_get_product_with_identifier(|arg| arg.partial_eq("Foo"))
+            .expect_get_product_with_identifier(|arg| arg.partial_eq("foo"))
             .times(1)
             .returns(Ok(None));
 
