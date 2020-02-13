@@ -35,10 +35,10 @@ impl<'a> MessageRouterImpl<'a> {
     }
 
     fn get_product(&self, message: &Message) -> Result<Option<Product>, ()> {
-        let product_identifier = message.contents.trim_start_matches('/');
+        let product_identifier = message.contents.trim_start_matches('/').to_lowercase();
 
         self.product_service
-            .get_product_with_identifier(product_identifier)
+            .get_product_with_identifier(&product_identifier)
     }
 }
 
