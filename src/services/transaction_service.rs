@@ -13,17 +13,9 @@ use crate::schema::transactions;
 
 #[cfg_attr(test, mockable)]
 pub trait TransactionService {
-    fn register_product_transaction(
-        &self,
-        product: &Product,
-        sender: &User,
-    ) -> Result<(), ()>;
+    fn register_product_transaction(&self, product: &Product, sender: &User) -> Result<(), ()>;
 
-    fn register_amount_transaction(
-        &self,
-        amount: Rappen,
-        sender: &User,
-    ) -> Result<(), ()>;
+    fn register_amount_transaction(&self, amount: Rappen, sender: &User) -> Result<(), ()>;
 }
 
 pub struct TransactionServiceImpl<'a> {
@@ -37,10 +29,7 @@ impl<'a> TransactionServiceImpl<'a> {
         }
     }
 
-    fn insert_transaction(
-        &self,
-        transaction: Transaction
-    ) -> Result<(), ()> {
+    fn insert_transaction(&self, transaction: Transaction) -> Result<(), ()> {
         diesel::insert_into(transactions::table)
             .values(transaction)
             .execute(self.database_connection)
@@ -50,29 +39,21 @@ impl<'a> TransactionServiceImpl<'a> {
 }
 
 impl TransactionService for TransactionServiceImpl<'_> {
-    fn register_product_transaction(
-        &self,
-        product: &Product,
-        sender: &User,
-    ) -> Result<(), ()> {
+    fn register_product_transaction(&self, product: &Product, sender: &User) -> Result<(), ()> {
         self.insert_transaction(Transaction {
             amount: -product.price,
             timestamp: Utc::now().naive_utc(),
             user: sender.id.clone(),
-            product_name: Some(product.name.clone())
+            product_name: Some(product.name.clone()),
         })
     }
 
-    fn register_amount_transaction(
-        &self,
-        amount: Rappen,
-        sender: &User,
-    ) -> Result<(), ()> {
+    fn register_amount_transaction(&self, amount: Rappen, sender: &User) -> Result<(), ()> {
         self.insert_transaction(Transaction {
             amount,
             timestamp: Utc::now().naive_utc(),
             user: sender.id.clone(),
-            product_name: None
+            product_name: None,
         })
     }
 }
