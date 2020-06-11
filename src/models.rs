@@ -17,7 +17,7 @@ pub struct Response {
 
 #[derive(Debug, PartialEq)]
 pub enum Command {
-    GetCurrentStats,
+    GetCurrentBalances,
     ListAvailableItems,
 }
 
@@ -49,7 +49,7 @@ pub struct Balance {
     pub amount: i32,
 }
 
-#[derive(Queryable, Insertable, Identifiable, Debug)]
+#[derive(Queryable, Insertable, Identifiable, Clone, Debug)]
 pub struct User {
     pub id: String,
     pub name: String,

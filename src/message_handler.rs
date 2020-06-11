@@ -15,7 +15,7 @@ use crate::models::{
 use crate::schema::{balances, products, transactions, users};
 use crate::services::balance_service::BalanceService;
 use crate::services::product_service::ProductService;
-use crate::services::transaction_service::{TransactionKind, TransactionService};
+use crate::services::transaction_service::TransactionService;
 use crate::services::user_service::UserService;
 
 pub trait MessageHandler {
@@ -55,50 +55,64 @@ impl<'a> MessageHandlerImpl<'a> {
         message_action: MessageAction,
         sender: &User,
     ) -> Result<Vec<Response>, ()> {
-        let transaction_kind = match message_action {
-            MessageAction::Command(command) => return self.handle_command(command, sender),
-            MessageAction::Product(product) => TransactionKind::Product(product),
-            MessageAction::Amount(amount) => TransactionKind::Amount(amount),
-        };
-
-        let success_message = match &transaction_kind {
-            TransactionKind::Amount(amount) => format!(
-                "Recorded {}",
-                self.currency_formatter.format_amount(*amount)
-            ),
-            TransactionKind::Product(Product { name, .. }) => format!("Recorded {}", name),
-        };
-
         self.user_service.update_user(sender)?;
-        self.transaction_service
-            .register_transaction(transaction_kind, sender)?;
 
-        let mut responses = vec![Response {
-            contents: success_message,
-        }];
+        let response = match &message_action {
+            MessageAction::Command(command) => self.handle_command(command, sender),
+            MessageAction::Product(product) => self.handle_product(product, sender),
+            MessageAction::Amount(amount) => self.handle_amount(*amount, sender),
+        }?;
 
-        if let Ok(formatted_balances) = self.get_formatted_balances(&sender) {
-            responses.push(Response {
-                contents: formatted_balances,
-            });
+        if matches!(message_action, MessageAction::Product(_) | MessageAction::Amount(_)) {
+            let balances = self.balance_service.get_balances()?;
+            let formatted_balances = self.format_balances(&balances, sender);
+
+            Ok(vec![
+                response,
+                Response {
+                    contents: formatted_balances,
+                },
+            ])
+        } else {
+            Ok(vec![response])
         }
-
-        Ok(responses)
     }
 
-    fn handle_command(&self, command: Command, sender: &User) -> Result<Vec<Response>, ()> {
+    fn handle_command(&self, command: &Command, sender: &User) -> Result<Response, ()> {
         let contents = match command {
-            Command::ListAvailableItems => self.get_formatted_available_products()?,
-            Command::GetCurrentStats => self.get_formatted_balances(sender)?,
+            Command::ListAvailableItems => {
+                let products = self.product_service.get_available_products()?;
+                self.format_products(&products)
+            }
+            Command::GetCurrentBalances => {
+                let balances = self.balance_service.get_balances()?;
+                self.format_balances(&balances, sender)
+            }
         };
 
-        Ok(vec![Response { contents }])
+        Ok(Response { contents })
     }
 
-    fn get_formatted_available_products(&self) -> Result<String, ()> {
-        self.product_service
-            .get_available_products()
-            .map(|products| self.format_products(&products))
+    fn handle_product(&self, product: &Product, sender: &User) -> Result<Response, ()> {
+        self.transaction_service
+            .register_product_transaction(product, sender)?;
+
+        Ok(Response {
+            contents: format!(
+                "Recorded {} ({})",
+                product.name,
+                self.currency_formatter.format_amount(product.price)
+            ),
+        })
+    }
+
+    fn handle_amount(&self, amount: Rappen, sender: &User) -> Result<Response, ()> {
+        self.transaction_service
+            .register_amount_transaction(amount, sender)?;
+
+        Ok(Response {
+            contents: format!("Recorded {}", amount),
+        })
     }
 
     fn format_products(&self, products: &[Product]) -> String {
@@ -119,16 +133,10 @@ impl<'a> MessageHandlerImpl<'a> {
         format!("{}\n{}", message_header, message_body)
     }
 
-    fn get_formatted_balances(&self, sender: &User) -> Result<String, ()> {
-        self.balance_service
-            .get_balances()
-            .map(|balances| self.format_balances(balances, sender))
-    }
-
-    fn format_balances(&self, balances: Vec<Balance>, sender: &User) -> String {
+    fn format_balances(&self, balances: &[Balance], sender: &User) -> String {
         let message_header = "Current stats:";
         let message_body = balances
-            .into_iter()
+            .iter()
             .map(|balance| {
                 let text = format!(
                     "- {} ({})",
@@ -180,16 +188,6 @@ mod tests {
 
     use super::*;
 
-    fn message_mock() -> Message {
-        Message {
-            sender: User {
-                id: "some id".to_string(),
-                name: "foo".to_string(),
-            },
-            contents: "bar".to_string(),
-        }
-    }
-
     #[test]
     fn invalid_input() {
         let mut message_router = MessageRouterMock::new();
@@ -230,6 +228,16 @@ mod tests {
                 Command::ListAvailableItems,
             ))));
 
+        let user = User {
+            id: "some id".to_string(),
+            name: "foo".to_string(),
+        };
+
+        let mut user_service = UserServiceMock::new();
+        user_service
+            .expect_update_user(|arg| arg.partial_eq(&user))
+            .returns_once(Ok(()));
+
         let mut currency_formatter = CurrencyFormatterMock::new();
         currency_formatter
             .expect_format_amount(|arg| arg.partial_eq(420))
@@ -256,14 +264,18 @@ mod tests {
 
         let message_handler = MessageHandlerImpl::new(
             Box::new(message_router),
-            Box::new(UserServiceMock::new()),
+            Box::new(user_service),
             Box::new(product_service),
             Box::new(TransactionServiceMock::new()),
             Box::new(BalanceServiceMock::new()),
             Box::new(currency_formatter),
         );
 
-        let responses = message_handler.handle_message(&message_mock());
+        let responses = message_handler.handle_message(&Message {
+            sender: user.clone(),
+            contents: "bar".to_string(),
+        });
+
         assert_eq!(
             vec![Response {
                 contents:
