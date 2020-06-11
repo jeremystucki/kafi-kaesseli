@@ -1,4 +1,10 @@
 language: rust
+dist: bionic
+
+addons:
+  apt:
+    packages:
+      - libssl-dev
 
 install:
   - ./scripts/install-tarpaulin.sh

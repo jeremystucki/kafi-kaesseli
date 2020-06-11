@@ -2,7 +2,7 @@
 
 set -e
 
-version=0.9.0
+version=0.13.3
 archive_name="cargo-tarpaulin-$version-travis"
 archive_file="$archive_name.tar.gz"
 download_url="https://github.com/xd009642/tarpaulin/releases/download/$version/$archive_file"
