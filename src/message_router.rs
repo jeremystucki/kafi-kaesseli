@@ -29,7 +29,7 @@ impl<'a> MessageRouterImpl<'a> {
     fn get_command(&self, message: &Message) -> Option<Command> {
         match message.contents.as_ref() {
             "/list" => Some(Command::ListAvailableItems),
-            "/stats" => Some(Command::GetCurrentStats),
+            "/stats" => Some(Command::GetCurrentBalances),
             _ => None,
         }
     }
@@ -114,7 +114,7 @@ mod tests {
 
         let action = router.route_message(&message).unwrap();
         assert_eq!(
-            Some(MessageAction::Command(Command::GetCurrentStats)),
+            Some(MessageAction::Command(Command::GetCurrentBalances)),
             action
         );
     }
