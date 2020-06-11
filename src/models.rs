@@ -49,16 +49,10 @@ pub struct Balance {
     pub amount: i32,
 }
 
-#[derive(Queryable, Insertable, Identifiable, Clone, Debug)]
+#[derive(Queryable, Insertable, Identifiable, PartialEq, Clone, Debug)]
 pub struct User {
     pub id: String,
     pub name: String,
-}
-
-impl PartialEq for User {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
-    }
 }
 
 #[derive(Insertable, Debug)]

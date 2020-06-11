@@ -12,7 +12,7 @@ table! {
         amount -> Integer,
         timestamp -> Timestamp,
         user -> Text,
-        product_name -> Text,
+        product_name -> Nullable<Text>,
     }
 }
 
