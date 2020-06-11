@@ -235,7 +235,7 @@ mod tests {
 
         let mut user_service = UserServiceMock::new();
         user_service
-            .expect_update_user(|arg| arg.partial_eq(&user))
+            .expect_update_user(|arg| arg.partial_eq_owned(user.clone()))
             .returns_once(Ok(()));
 
         let mut currency_formatter = CurrencyFormatterMock::new();
@@ -272,7 +272,7 @@ mod tests {
         );
 
         let responses = message_handler.handle_message(&Message {
-            sender: user.clone(),
+            sender: user,
             contents: "bar".to_string(),
         });
 
