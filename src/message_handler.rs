@@ -111,7 +111,7 @@ impl<'a> MessageHandlerImpl<'a> {
             .register_amount_transaction(amount, sender)?;
 
         Ok(Response {
-            contents: format!("Recorded {}", amount),
+            contents: format!("Recorded {}", self.currency_formatter.format_amount(amount)),
         })
     }
 
